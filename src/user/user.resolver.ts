@@ -9,7 +9,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
-import { TodoService } from '../todo/todo.service';
+import { TodoService } from 'todo/todo.service';
 
 @Resolver('User')
 export class UserResolver {

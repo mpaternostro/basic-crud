@@ -9,7 +9,7 @@ import {
 import { TodoService } from './todo.service';
 import { CreateTodoInput } from './dto/create-todo.input';
 import { UpdateTodoInput } from './dto/update-todo.input';
-import { UserService } from '../user/user.service';
+import { UserService } from 'user/user.service';
 
 @Resolver('Todo')
 export class TodoResolver {

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TodoResolver } from './todo.resolver';
 import { TodoService } from './todo.service';
-import { UserService } from '../user/user.service';
+import { UserService } from 'user/user.service';
 
 describe('TodoResolver', () => {
   let resolver: TodoResolver;
