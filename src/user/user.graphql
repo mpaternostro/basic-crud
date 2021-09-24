@@ -1,0 +1,24 @@
+type User {
+  id: ID!
+  username: String!
+  todos: [Todo]!
+}
+
+input CreateUserInput {
+  username: String!
+}
+
+input UpdateUserInput {
+  id: ID!
+}
+
+type Query {
+  users: [User]!
+  user(id: ID!): User
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserInput!): User!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  removeUser(id: ID!): User
+}
