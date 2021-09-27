@@ -7,8 +7,7 @@ import { UserModule } from 'user/user.module';
 import { TodoModule } from 'todo/todo.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { TodoModule } from './todo/todo.module';
+import { DateScalar } from './date-scalar';
 
 @Module({
   imports: [
@@ -18,6 +17,10 @@ import { TodoModule } from './todo/todo.module';
       definitions: {
         path: join(process.cwd(), 'src/graphql.ts'),
         outputAs: 'class',
+        defaultScalarType: 'unknown',
+        customScalarTypeMapping: {
+          DateTime: 'Date',
+        },
       },
     }),
     TypeOrmModule.forRoot({
@@ -34,6 +37,6 @@ import { TodoModule } from './todo/todo.module';
     TodoModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, DateScalar],
 })
 export class AppModule {}

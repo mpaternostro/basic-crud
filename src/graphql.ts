@@ -59,6 +59,9 @@ export class User {
     id: string;
     username: string;
     todos: Nullable<Todo>[];
+    createdAt: DateTime;
+    updatedAt: DateTime;
 }
 
+export type DateTime = Date;
 type Nullable<T> = T | null;
