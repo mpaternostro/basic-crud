@@ -68,10 +68,12 @@
       "ts"
     ],
     "moduleDirectories": [
-      "node_modules",
-      "src"
+      "node_modules"
     ],
-    "rootDir": "src",
+    "moduleNameMapper": {
+      "^user/(.*)$": "<rootDir>/src/user/$1",
+      "^todo/(.*)$": "<rootDir>/src/todo/$1"
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

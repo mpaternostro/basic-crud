@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TodoService } from './todo.service';
-import { TodoResolver } from './todo.resolver';
-import { UserService } from 'user/user.service';
+import { UserService } from 'user/service/user.service';
+import { TodoService } from './service/todo.service';
+import { TodoResolver } from './resolver/todo.resolver';
 
 @Module({
   providers: [TodoResolver, TodoService, UserService],

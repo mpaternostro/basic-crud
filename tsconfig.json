@@ -9,7 +9,11 @@
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "user/*": ["src/user/*"],
+      "todo/*": ["src/todo/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
