@@ -18,11 +18,13 @@ export class UpdateTodoInput {
 
 export class CreateUserInput {
     username: string;
+    password: string;
 }
 
 export class UpdateUserInput {
     id: string;
     username: string;
+    password: string;
 }
 
 export class Todo {
@@ -59,7 +61,8 @@ export abstract class IMutation {
 export class User {
     id: string;
     username: string;
-    todos: Nullable<Todo>[];
+    password: string;
+    todos?: Nullable<Todo[]>;
     createdAt: DateTime;
     updatedAt: DateTime;
 }

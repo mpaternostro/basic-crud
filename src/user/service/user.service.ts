@@ -11,6 +11,10 @@ export class UserService {
     return this.userRepository.findUser(id);
   }
 
+  findOneByUsername(username: string) {
+    return this.userRepository.findUserByUsername(username);
+  }
+
   findAll() {
     return this.userRepository.findAllUsers();
   }

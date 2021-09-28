@@ -24,12 +24,15 @@ export class User {
   @Column()
   username: string;
 
+  @Column()
+  password: string;
+
   @CreateDateColumn({ type: dbType })
   createdAt: Date;
 
   @UpdateDateColumn({ type: dbType })
   updatedAt: Date;
 
-  @OneToMany(() => Todo, (todo) => todo.user.id)
+  @OneToMany(() => Todo, (todo) => todo.id)
   todos: Todo[] | null;
 }

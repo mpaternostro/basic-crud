@@ -3,18 +3,21 @@ scalar DateTime
 type User {
   id: ID!
   username: String!
-  todos: [Todo]!
+  password: String!
+  todos: [Todo!]
   createdAt: DateTime!
   updatedAt: DateTime!
 }
 
 input CreateUserInput {
   username: String!
+  password: String!
 }
 
 input UpdateUserInput {
   id: ID!
   username: String!
+  password: String!
 }
 
 type Query {
