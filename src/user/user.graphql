@@ -4,6 +4,8 @@ type User {
   id: ID!
   username: String!
   todos: [Todo]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 input CreateUserInput {
@@ -12,6 +14,7 @@ input CreateUserInput {
 
 input UpdateUserInput {
   id: ID!
+  username: String!
 }
 
 type Query {

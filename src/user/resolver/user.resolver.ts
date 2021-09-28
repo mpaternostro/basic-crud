@@ -6,10 +6,11 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { UserService } from './user.service';
-import { CreateUserInput } from './dto/create-user.input';
-import { UpdateUserInput } from './dto/update-user.input';
-import { TodoService } from 'todo/todo.service';
+import { TodoService } from 'todo/service/todo.service';
+import { User } from '../entities/user.entity';
+import { UserService } from '../service/user.service';
+import { CreateUserInput } from '../dto/create-user.input';
+import { UpdateUserInput } from '../dto/update-user.input';
 
 @Resolver('User')
 export class UserResolver {
@@ -18,9 +19,9 @@ export class UserResolver {
     private readonly todoService: TodoService,
   ) {}
 
-  @Mutation('createUser')
-  create(@Args('createUserInput') createUserInput: CreateUserInput) {
-    return this.userService.create(createUserInput);
+  @Query('user')
+  findOne(@Args('id') id: string) {
+    return this.userService.findOneById(id);
   }
 
   @Query('users')
@@ -28,15 +29,17 @@ export class UserResolver {
     return this.userService.findAll();
   }
 
-  @Query('user')
-  findOne(@Args('id') id: string) {
-    return this.userService.findOneById(id);
-  }
-
   @ResolveField('todos')
-  async findTodos(@Parent() user) {
+  findTodos(@Parent() user) {
     const { id } = user;
     return this.todoService.findAllByUserId(id);
+  }
+
+  @Mutation('createUser')
+  create(
+    @Args('createUserInput') createUserInput: CreateUserInput,
+  ): Promise<User> {
+    return this.userService.create(createUserInput);
   }
 
   @Mutation('updateUser')

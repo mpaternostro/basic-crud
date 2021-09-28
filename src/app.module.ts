@@ -32,6 +32,7 @@ import { DateScalar } from './date-scalar';
       ssl: {
         rejectUnauthorized: false,
       },
+      useUTC: true,
     }),
     UserModule,
     TodoModule,

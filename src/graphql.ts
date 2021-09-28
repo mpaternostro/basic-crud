@@ -22,6 +22,7 @@ export class CreateUserInput {
 
 export class UpdateUserInput {
     id: string;
+    username: string;
 }
 
 export class Todo {
