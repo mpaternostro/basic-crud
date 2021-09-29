@@ -39,6 +39,8 @@ export abstract class IQuery {
 
     abstract todo(id: string): Nullable<Todo> | Promise<Nullable<Todo>>;
 
+    abstract whoAmI(): Nullable<User> | Promise<Nullable<User>>;
+
     abstract users(): Nullable<User>[] | Promise<Nullable<User>[]>;
 
     abstract user(id: string): Nullable<User> | Promise<Nullable<User>>;

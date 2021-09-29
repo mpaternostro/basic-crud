@@ -21,6 +21,7 @@ input UpdateUserInput {
 }
 
 type Query {
+  whoAmI: User
   users: [User]!
   user(id: ID!): User
 }

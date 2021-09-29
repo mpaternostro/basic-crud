@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common';
 import {
   Resolver,
   Query,
@@ -9,15 +10,23 @@ import {
 import { TodoService } from 'todo/service/todo.service';
 import { User } from '../entities/user.entity';
 import { UserService } from '../service/user.service';
+import { GqlAuthGuard } from '../../auth/guard/gql-auth.guard';
+import { CurrentUser } from '../../auth/current-user.decorator';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 
 @Resolver('User')
+@UseGuards(GqlAuthGuard)
 export class UserResolver {
   constructor(
     private readonly userService: UserService,
     private readonly todoService: TodoService,
   ) {}
+
+  @Query('whoAmI')
+  whoAmI(@CurrentUser() user: User) {
+    return user;
+  }
 
   @Query('user')
   findOne(@Args('id') id: string) {
