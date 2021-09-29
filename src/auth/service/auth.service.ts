@@ -22,7 +22,6 @@ export class AuthService {
       username: registerInput.username,
       password: hashedPassword,
     });
-    createdUser.password = undefined!;
     return createdUser;
   }
 
@@ -35,7 +34,10 @@ export class AuthService {
     if (!user) {
       throw new Error('User not found.');
     }
-    const isPasswordMatching = this.verifyPassword(password, user.password);
+    const isPasswordMatching = await this.verifyPassword(
+      password,
+      user.password,
+    );
     if (!isPasswordMatching) {
       throw new Error('Password did not match.');
     }

@@ -1,4 +1,8 @@
-import { UseGuards } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import {
   Resolver,
   Query,
@@ -17,6 +21,7 @@ import { UpdateUserInput } from '../dto/update-user.input';
 
 @Resolver('User')
 @UseGuards(GqlAuthGuard)
+@UseInterceptors(ClassSerializerInterceptor)
 export class UserResolver {
   constructor(
     private readonly userService: UserService,

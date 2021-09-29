@@ -3,7 +3,7 @@ scalar DateTime
 type User {
   id: ID!
   username: String!
-  password: String!
+  password: String
   todos: [Todo!]
   createdAt: DateTime!
   updatedAt: DateTime!

@@ -63,7 +63,7 @@ export abstract class IMutation {
 export class User {
     id: string;
     username: string;
-    password: string;
+    password?: Nullable<string>;
     todos?: Nullable<Todo[]>;
     createdAt: DateTime;
     updatedAt: DateTime;
