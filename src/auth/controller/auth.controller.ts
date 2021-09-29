@@ -11,6 +11,7 @@ import {
 import { AuthService } from '../service/auth.service';
 import { RegisterInput } from '../dto/register-input';
 import { LocalAuthGuard } from '../guard/local-auth.guard';
+import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 import { RequestWithUser } from '../requestWithUser.interface';
 
 @Controller('auth')
@@ -31,5 +32,12 @@ export class AuthController {
     response.setHeader('Set-Cookie', cookie);
     user.password = undefined!;
     return response.send(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logOut(@Req() request: RequestWithUser, @Res() response: Response) {
+    response.setHeader('Set-Cookie', this.authService.getCookieForLogOut());
+    return response.sendStatus(200);
   }
 }
