@@ -1,8 +1,9 @@
 import { join } from 'path';
+import * as Joi from 'joi';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from 'user/user.module';
 import { TodoModule } from 'todo/todo.module';
 import { AuthModule } from './auth/auth.module';
@@ -12,8 +13,18 @@ import { DateScalar } from './date-scalar';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    GraphQLModule.forRoot({
+    ConfigModule.forRoot({
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string()
+          .valid('development', 'production', 'test', 'provision')
+          .default('development'),
+        DATABASE_URL: Joi.string().required(),
+      }),
+    }),
+    GraphQLModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: () => ({
       typePaths: ['./**/*.graphql'],
       definitions: {
         path: join(process.cwd(), 'src/graphql.ts'),
@@ -24,9 +35,13 @@ import { DateScalar } from './date-scalar';
         },
       },
     }),
-    TypeOrmModule.forRoot({
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
       type: 'postgres',
-      url: process.env.DATABASE_URL,
+        url: configService.get<string>('DATABASE_URL'),
       entities: ['dist/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
       // synchronize: true,
@@ -34,6 +49,7 @@ import { DateScalar } from './date-scalar';
         rejectUnauthorized: false,
       },
       useUTC: true,
+      }),
     }),
     UserModule,
     TodoModule,
