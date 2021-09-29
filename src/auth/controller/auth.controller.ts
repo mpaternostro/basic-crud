@@ -1,6 +1,8 @@
+import { Response } from 'express';
 import {
   Body,
   Req,
+  Res,
   Controller,
   HttpCode,
   Post,
@@ -23,7 +25,11 @@ export class AuthController {
   @HttpCode(200)
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async logIn(@Req() req: RequestWithUser) {
-    return req.user;
+  async login(@Req() req: RequestWithUser, @Res() response: Response) {
+    const { user } = req;
+    const cookie = this.authService.getCookieWithJwtToken(user);
+    response.setHeader('Set-Cookie', cookie);
+    user.password = undefined!;
+    return response.send(user);
   }
 }

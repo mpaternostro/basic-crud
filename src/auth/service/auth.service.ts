@@ -1,11 +1,19 @@
-import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { User } from 'user/entities/user.entity';
 import { UserService } from 'user/service/user.service';
 import { RegisterInput } from '../dto/register-input';
+import { TokenPayload } from '../tokenPayload.interface';
 
 @Injectable()
 export class AuthService {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
 
   async register(registerInput: RegisterInput) {
     const hashedPassword = await bcrypt.hash(registerInput.password, 10);
@@ -14,6 +22,7 @@ export class AuthService {
       username: registerInput.username,
       password: hashedPassword,
     });
+    createdUser.password = undefined!;
     return createdUser;
   }
 
@@ -31,5 +40,13 @@ export class AuthService {
       throw new Error('Password did not match.');
     }
     return user;
+  }
+
+  getCookieWithJwtToken(user: User) {
+    const payload: TokenPayload = { username: user.username, sub: user.id };
+    const token = this.jwtService.sign(payload);
+    return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get(
+      'JWT_EXPIRATION_TIME',
+    )}`;
   }
 }

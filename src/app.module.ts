@@ -19,36 +19,38 @@ import { DateScalar } from './date-scalar';
           .valid('development', 'production', 'test', 'provision')
           .default('development'),
         DATABASE_URL: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRATION_TIME: Joi.string().required(),
       }),
     }),
     GraphQLModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: () => ({
-      typePaths: ['./**/*.graphql'],
-      definitions: {
-        path: join(process.cwd(), 'src/graphql.ts'),
-        outputAs: 'class',
-        defaultScalarType: 'unknown',
-        customScalarTypeMapping: {
-          DateTime: 'Date',
+        typePaths: ['./**/*.graphql'],
+        definitions: {
+          path: join(process.cwd(), 'src/graphql.ts'),
+          outputAs: 'class',
+          defaultScalarType: 'unknown',
+          customScalarTypeMapping: {
+            DateTime: 'Date',
+          },
         },
-      },
-    }),
+      }),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-      type: 'postgres',
+        type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
-      entities: ['dist/**/*.entity{.ts,.js}'],
-      autoLoadEntities: true,
-      // synchronize: true,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-      useUTC: true,
+        entities: ['dist/**/*.entity{.ts,.js}'],
+        autoLoadEntities: true,
+        // synchronize: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+        useUTC: true,
       }),
     }),
     UserModule,
