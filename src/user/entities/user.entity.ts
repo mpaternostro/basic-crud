@@ -22,12 +22,19 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
   @Exclude()
   @Column()
   password: string;
+
+  @Exclude()
+  @Column({
+    type: 'varchar',
+    nullable: true,
+  })
+  currentHashedRefreshToken: string | null;
 
   @CreateDateColumn({ type: dbType })
   createdAt: Date;

@@ -4,6 +4,7 @@ type User {
   id: ID!
   username: String!
   password: String
+  currentHashedRefreshToken: String
   todos: [Todo!]
   createdAt: DateTime!
   updatedAt: DateTime!

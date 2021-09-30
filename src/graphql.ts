@@ -64,6 +64,7 @@ export class User {
     id: string;
     username: string;
     password?: Nullable<string>;
+    currentHashedRefreshToken?: Nullable<string>;
     todos?: Nullable<Todo[]>;
     createdAt: DateTime;
     updatedAt: DateTime;
