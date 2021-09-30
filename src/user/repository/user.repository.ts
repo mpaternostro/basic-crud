@@ -55,7 +55,10 @@ export class UserRepository extends Repository<User> {
       .returning('*')
       .execute()
       .then((response: UserUpdateResult) => {
-        return this.create(response.raw[0]);
+        if (response.raw[0]) {
+          return this.create(response.raw[0]);
+        }
+        return;
       });
   }
 
@@ -72,7 +75,10 @@ export class UserRepository extends Repository<User> {
       .returning('*')
       .execute()
       .then((response: UserUpdateResult) => {
-        return this.create(response.raw[0]);
+        if (response.raw[0]) {
+          return this.create(response.raw[0]);
+        }
+        return;
       });
   }
 
@@ -84,7 +90,10 @@ export class UserRepository extends Repository<User> {
       .returning('*')
       .execute()
       .then((response) => {
-        return response.raw[0];
+        if (response.raw[0]) {
+          return response.raw[0];
+        }
+        return;
       });
   }
 }

@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'user/entities/user.entity';
@@ -17,28 +17,30 @@ export class AuthService {
 
   async register(registerInput: RegisterInput) {
     const hashedPassword = await bcrypt.hash(registerInput.password, 10);
-    const createdUser = await this.userService.create({
+    return this.userService.create({
       username: registerInput.username,
       password: hashedPassword,
     });
-    return createdUser;
   }
 
-  async verifyPassword(plainTextPassword: string, hashedPassword: string) {
+  private async verifyPassword(
+    plainTextPassword: string,
+    hashedPassword: string,
+  ) {
     return bcrypt.compare(plainTextPassword, hashedPassword);
   }
 
   async getAuthenticatedUser(username: string, password: string) {
     const user = await this.userService.findOneByUsername(username);
-    if (!user) {
-      throw new Error('User not found.');
-    }
     const isPasswordMatching = await this.verifyPassword(
       password,
       user.password,
     );
     if (!isPasswordMatching) {
-      throw new Error('Password did not match.');
+      throw new HttpException(
+        'Passwords did not match',
+        HttpStatus.BAD_REQUEST,
+      );
     }
     return user;
   }
