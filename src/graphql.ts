@@ -39,6 +39,8 @@ export abstract class IQuery {
 
     abstract todo(id: string): Nullable<Todo> | Promise<Nullable<Todo>>;
 
+    abstract whoAmI(): Nullable<User> | Promise<Nullable<User>>;
+
     abstract users(): Nullable<User>[] | Promise<Nullable<User>[]>;
 
     abstract user(id: string): Nullable<User> | Promise<Nullable<User>>;
@@ -61,7 +63,8 @@ export abstract class IMutation {
 export class User {
     id: string;
     username: string;
-    password: string;
+    password?: Nullable<string>;
+    currentHashedRefreshToken?: Nullable<string>;
     todos?: Nullable<Todo[]>;
     createdAt: DateTime;
     updatedAt: DateTime;

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TodoService } from 'todo/service/todo.service';
+import { TodoRepository } from 'todo/repository/todo.repository';
 import { UserService } from '../service/user.service';
 import { UserRepository } from '../repository/user.repository';
 import { User } from '../entities/user.entity';
@@ -29,6 +30,7 @@ describe('UserResolver', () => {
           useFactory: repositoryMockFactory,
         },
         UserRepository,
+        TodoRepository,
       ],
     }).compile();
 

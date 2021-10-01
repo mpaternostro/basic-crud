@@ -4,8 +4,9 @@ import {
   Repository,
   UpdateResult,
 } from 'typeorm';
-import { CreateUserInput } from 'user/dto/create-user.input';
-import { UpdateUserInput } from 'user/dto/update-user.input';
+import { CreateUserInput } from '../dto/create-user.input';
+import { UpdateUserInput } from '../dto/update-user.input';
+import { updateUserRefreshTokenInput } from '../dto/update-user-refresh-token.input';
 import { User } from '../entities/user.entity';
 
 class UserInsertResult extends InsertResult {
@@ -54,7 +55,30 @@ export class UserRepository extends Repository<User> {
       .returning('*')
       .execute()
       .then((response: UserUpdateResult) => {
-        return this.create(response.raw[0]);
+        if (response.raw[0]) {
+          return this.create(response.raw[0]);
+        }
+        return;
+      });
+  }
+
+  async updateUserRefreshToken(
+    updateUserRefreshTokenInput: updateUserRefreshTokenInput,
+  ) {
+    const { id, hashedRefreshToken } = updateUserRefreshTokenInput;
+    return this.createQueryBuilder()
+      .update(User)
+      .set({
+        currentHashedRefreshToken: hashedRefreshToken,
+      })
+      .where('id = :id', { id })
+      .returning('*')
+      .execute()
+      .then((response: UserUpdateResult) => {
+        if (response.raw[0]) {
+          return this.create(response.raw[0]);
+        }
+        return;
       });
   }
 
@@ -66,7 +90,10 @@ export class UserRepository extends Repository<User> {
       .returning('*')
       .execute()
       .then((response) => {
-        return response.raw[0];
+        if (response.raw[0]) {
+          return response.raw[0];
+        }
+        return;
       });
   }
 }
