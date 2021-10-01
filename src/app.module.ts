@@ -49,9 +49,12 @@ import { DateScalar } from './date-scalar';
         entities: ['dist/**/*.entity{.ts,.js}'],
         autoLoadEntities: true,
         // synchronize: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        ssl:
+          configService.get<string>('NODE_ENV') === 'production'
+            ? {
+                rejectUnauthorized: false,
+              }
+            : false,
         useUTC: true,
       }),
     }),
