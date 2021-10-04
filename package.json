@@ -84,6 +84,7 @@
       "node_modules"
     ],
     "moduleNameMapper": {
+      "^auth/(.*)$": "<rootDir>/src/auth/$1",
       "^utils/(.*)$": "<rootDir>/src/utils/$1",
       "^user/(.*)$": "<rootDir>/src/user/$1",
       "^todo/(.*)$": "<rootDir>/src/todo/$1"
