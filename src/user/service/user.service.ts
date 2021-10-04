@@ -33,6 +33,19 @@ export class UserService {
     return user;
   }
 
+  async findOneByUsernameWithPassword(username: string): Promise<User> {
+    const user = await this.userRepository.findUserByUsernameWithPassword(
+      username,
+    );
+    if (!user) {
+      throw new HttpException(
+        `User ${username} does not exist`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return user;
+  }
+
   async findAll(): Promise<User[]> {
     return this.userRepository.findAllUsers();
   }

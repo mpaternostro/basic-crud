@@ -31,6 +31,13 @@ export class UserRepository extends Repository<User> {
       .getOne();
   }
 
+  findUserByUsernameWithPassword(username: string) {
+    return this.createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .addSelect('user.password')
+      .getOne();
+  }
+
   findAllUsers() {
     return this.createQueryBuilder('user').getMany();
   }

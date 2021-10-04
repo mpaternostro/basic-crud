@@ -31,7 +31,7 @@ export class AuthService {
   }
 
   async getAuthenticatedUser(username: string, password: string) {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.findOneByUsernameWithPassword(username);
     const isPasswordMatching = await this.verifyPassword(
       password,
       user.password,
