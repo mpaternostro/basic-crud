@@ -42,6 +42,6 @@ export class User {
   @UpdateDateColumn({ type: dbType })
   updatedAt: Date;
 
-  @OneToMany(() => Todo, (todo) => todo.id)
+  @OneToMany(() => Todo, (todo) => todo.user)
   todos: Todo[] | null;
 }

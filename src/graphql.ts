@@ -14,6 +14,8 @@ export class CreateTodoInput {
 
 export class UpdateTodoInput {
     id: string;
+    title: string;
+    isCompleted?: Nullable<boolean>;
 }
 
 export class CreateUserInput {
@@ -32,6 +34,8 @@ export class Todo {
     title: string;
     isCompleted: boolean;
     user: User;
+    createdAt: DateTime;
+    updatedAt: DateTime;
 }
 
 export abstract class IQuery {
