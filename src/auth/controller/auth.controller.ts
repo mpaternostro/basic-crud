@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { User } from 'user/entities/user.entity';
 import { UserService } from 'user/service/user.service';
 import { AuthService } from '../service/auth.service';
 import { RegisterInput } from '../dto/register-input';
@@ -26,14 +27,14 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(@Body() registerInput: RegisterInput) {
+  async register(@Body() registerInput: RegisterInput): Promise<User> {
     return this.authService.register(registerInput);
   }
 
   @HttpCode(200)
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Req() req: RequestWithUser) {
+  async login(@Req() req: RequestWithUser): Promise<User> {
     const { user, res } = req;
     const accessTokenCookie =
       this.authService.getCookieWithJwtAccessToken(user);
@@ -49,7 +50,7 @@ export class AuthController {
 
   @UseGuards(JwtRefreshTokenGuard)
   @Get('refresh')
-  refresh(@Req() request: RequestWithUser) {
+  refresh(@Req() request: RequestWithUser): User {
     const { res } = request;
     const accessTokenCookie = this.authService.getCookieWithJwtAccessToken(
       request.user,

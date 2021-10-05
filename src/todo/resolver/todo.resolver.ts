@@ -17,6 +17,7 @@ import { CurrentUser } from 'auth/current-user.decorator';
 import { TodoService } from '../service/todo.service';
 import { CreateTodoInput } from '../dto/create-todo.input';
 import { UpdateTodoInput } from '../dto/update-todo.input';
+import { Todo } from 'todo/entities/todo.entity';
 
 @Resolver('Todo')
 @UseGuards(GqlAuthGuard)
@@ -25,17 +26,17 @@ export class TodoResolver {
   constructor(private readonly todoService: TodoService) {}
 
   @Query('todo')
-  findOne(@Args('id') id: string) {
+  async findOne(@Args('id') id: string): Promise<Todo | undefined> {
     return this.todoService.findOneById(id);
   }
 
   @Query('todos')
-  findAll(@CurrentUser() user: User) {
+  async findAll(@CurrentUser() user: User): Promise<Todo[]> {
     return this.todoService.findAllByUserId(user.id);
   }
 
   @ResolveField('user')
-  async findUser(@Parent() todo, @CurrentUser() user: User) {
+  async findUser(@Parent() todo, @CurrentUser() user: User): Promise<User> {
     return user;
   }
 
@@ -43,17 +44,19 @@ export class TodoResolver {
   create(
     @Args('createTodoInput') createTodoInput: CreateTodoInput,
     @CurrentUser() user: User,
-  ) {
+  ): Promise<Todo> {
     return this.todoService.create(createTodoInput, user);
   }
 
   @Mutation('updateTodo')
-  update(@Args('updateTodoInput') updateTodoInput: UpdateTodoInput) {
+  async update(
+    @Args('updateTodoInput') updateTodoInput: UpdateTodoInput,
+  ): Promise<Todo> {
     return this.todoService.update(updateTodoInput);
   }
 
   @Mutation('removeTodo')
-  remove(@Args('id') id: string) {
+  async remove(@Args('id') id: string) {
     return this.todoService.remove(id);
   }
 }

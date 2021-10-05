@@ -18,6 +18,7 @@ import { GqlAuthGuard } from '../../auth/guard/gql-auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
+import { Todo } from 'todo/entities/todo.entity';
 
 @Resolver('User')
 @UseGuards(GqlAuthGuard)
@@ -29,22 +30,22 @@ export class UserResolver {
   ) {}
 
   @Query('whoAmI')
-  whoAmI(@CurrentUser() user: User) {
+  whoAmI(@CurrentUser() user: User): User {
     return user;
   }
 
   @Query('user')
-  findOne(@Args('id') id: string) {
+  async findOne(@Args('id') id: string): Promise<User> {
     return this.userService.findOneById(id);
   }
 
   @Query('users')
-  findAll() {
+  async findAll(): Promise<User[]> {
     return this.userService.findAll();
   }
 
   @ResolveField('todos')
-  findTodos(@Parent() user) {
+  async findTodos(@Parent() user): Promise<Todo[]> {
     const { id } = user;
     return this.todoService.findAllByUserId(id);
   }
@@ -57,7 +58,9 @@ export class UserResolver {
   }
 
   @Mutation('updateUser')
-  update(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
+  update(
+    @Args('updateUserInput') updateUserInput: UpdateUserInput,
+  ): Promise<User> {
     return this.userService.update(updateUserInput);
   }
 
