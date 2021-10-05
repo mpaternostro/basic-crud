@@ -16,7 +16,9 @@ export class AuthService {
   ) {}
 
   async register(registerInput: RegisterInput) {
-    const hashedPassword = await bcrypt.hash(registerInput.password, 10);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const salt = this.configService.get<number>('PASSWORD_SALT')!;
+    const hashedPassword = await bcrypt.hash(registerInput.password, salt);
     return this.userService.create({
       username: registerInput.username,
       password: hashedPassword,

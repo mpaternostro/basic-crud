@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -25,6 +26,7 @@ describe('TodoResolver', () => {
         TodoResolver,
         TodoService,
         UserService,
+        ConfigService,
         UserRepository,
         {
           provide: getRepositoryToken(Todo),

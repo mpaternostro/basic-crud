@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { isQueryFailedError } from 'utils/isQueryFailedError';
 import { PostgresErrorCode } from 'utils/postgresErrorCode.enum';
 import { UserRepository } from '../repository/user.repository';
@@ -9,7 +10,10 @@ import { User } from '../entities/user.entity';
 
 @Injectable()
 export class UserService {
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    private userRepository: UserRepository,
+    private configService: ConfigService,
+  ) {}
 
   async findOneById(id: string): Promise<User> {
     const user = await this.userRepository.findUser(id);
@@ -94,7 +98,9 @@ export class UserService {
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const salt = this.configService.get<number>('PASSWORD_SALT')!;
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
     const updatedUser = await this.userRepository.updateUserRefreshToken({
       id: userId,
       hashedRefreshToken,

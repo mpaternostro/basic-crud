@@ -23,6 +23,7 @@ import { DateScalar } from './date-scalar';
         JWT_ACCESS_TOKEN_EXPIRATION_TIME: Joi.string().required(),
         JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: Joi.string().required(),
+        PASSWORD_SALT: Joi.number().required(),
       }),
     }),
     GraphQLModule.forRootAsync({
