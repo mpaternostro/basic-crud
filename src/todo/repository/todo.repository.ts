@@ -61,9 +61,11 @@ export class TodoRepository extends Repository<Todo> {
   }
 
   async updateTodo(updateTodoInput: UpdateTodoInput): Promise<Todo> {
+    const values: { id?: string } = { ...updateTodoInput };
+    delete values.id;
     return this.createQueryBuilder()
       .update(Todo)
-      .set({ title: updateTodoInput.title })
+      .set(values)
       .where('id = :id', { id: updateTodoInput.id })
       .returning('*')
       .execute()
