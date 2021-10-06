@@ -9,13 +9,12 @@ type Todo {
 
 input CreateTodoInput {
   title: String!
-  isCompleted: Boolean = false
 }
 
 input UpdateTodoInput {
   id: ID!
-  title: String!
-  isCompleted: Boolean = false
+  title: String
+  isCompleted: Boolean
 }
 
 type Query {

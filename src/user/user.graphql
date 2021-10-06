@@ -17,8 +17,8 @@ input CreateUserInput {
 
 input UpdateUserInput {
   id: ID!
-  username: String!
-  password: String!
+  username: String
+  password: String
 }
 
 type Query {

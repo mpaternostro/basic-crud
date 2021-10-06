@@ -9,12 +9,11 @@
 /* eslint-disable */
 export class CreateTodoInput {
     title: string;
-    isCompleted?: Nullable<boolean>;
 }
 
 export class UpdateTodoInput {
     id: string;
-    title: string;
+    title?: Nullable<string>;
     isCompleted?: Nullable<boolean>;
 }
 
@@ -25,8 +24,8 @@ export class CreateUserInput {
 
 export class UpdateUserInput {
     id: string;
-    username: string;
-    password: string;
+    username?: Nullable<string>;
+    password?: Nullable<string>;
 }
 
 export class Todo {
