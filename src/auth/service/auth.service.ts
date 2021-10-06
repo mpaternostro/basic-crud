@@ -2,9 +2,9 @@ import * as bcrypt from 'bcrypt';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserInput } from 'user/dto/create-user.input';
 import { User } from 'user/entities/user.entity';
 import { UserService } from 'user/service/user.service';
-import { RegisterInput } from '../dto/register-input';
 import { TokenPayload } from '../tokenPayload.interface';
 
 @Injectable()
@@ -15,14 +15,8 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(registerInput: RegisterInput) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const salt = this.configService.get<number>('PASSWORD_SALT')!;
-    const hashedPassword = await bcrypt.hash(registerInput.password, salt);
-    return this.userService.create({
-      username: registerInput.username,
-      password: hashedPassword,
-    });
+  async register(createUserInput: CreateUserInput) {
+    return this.userService.create(createUserInput);
   }
 
   private async verifyPassword(

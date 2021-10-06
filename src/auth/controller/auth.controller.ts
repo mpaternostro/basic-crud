@@ -9,10 +9,10 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { CreateUserInput } from 'user/dto/create-user.input';
 import { User } from 'user/entities/user.entity';
 import { UserService } from 'user/service/user.service';
 import { AuthService } from '../service/auth.service';
-import { RegisterInput } from '../dto/register-input';
 import { LocalAuthGuard } from '../guard/local-auth.guard';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 import { JwtRefreshTokenGuard } from '../guard/jwt-refresh-token-auth.guard';
@@ -27,8 +27,8 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(@Body() registerInput: RegisterInput): Promise<User> {
-    return this.authService.register(registerInput);
+  async register(@Body() createUserInput: CreateUserInput): Promise<User> {
+    return this.authService.register(createUserInput);
   }
 
   @HttpCode(200)

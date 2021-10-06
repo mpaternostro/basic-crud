@@ -54,9 +54,19 @@ export class UserService {
     return this.userRepository.findAllUsers();
   }
 
+  private async hashString(stringToHash: string) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const salt = this.configService.get<number>('PASSWORD_SALT')!;
+    return bcrypt.hash(stringToHash, salt);
+  }
+
   async create(createUserInput: CreateUserInput): Promise<User> {
+    const hashedPassword = await this.hashString(createUserInput.password);
     try {
-      const newUser = await this.userRepository.createUser(createUserInput);
+      const newUser = await this.userRepository.createUser({
+        username: createUserInput.username,
+        password: hashedPassword,
+      });
       return newUser;
     } catch (error) {
       if (
@@ -76,6 +86,11 @@ export class UserService {
   }
 
   async update(updateUserInput: UpdateUserInput): Promise<User> {
+    if (updateUserInput.password) {
+      updateUserInput.password = await this.hashString(
+        updateUserInput.password,
+      );
+    }
     const updateUser = await this.userRepository.updateUser(updateUserInput);
     if (!updateUser) {
       throw new HttpException(
@@ -98,9 +113,7 @@ export class UserService {
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const salt = this.configService.get<number>('PASSWORD_SALT')!;
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, salt);
+    const hashedRefreshToken = await this.hashString(refreshToken);
     const updatedUser = await this.userRepository.updateUserRefreshToken({
       id: userId,
       hashedRefreshToken,

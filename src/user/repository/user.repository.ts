@@ -55,9 +55,11 @@ export class UserRepository extends Repository<User> {
   }
 
   async updateUser(updateUserInput: UpdateUserInput) {
+    const values: { id?: string } = { ...updateUserInput };
+    delete values.id;
     return this.createQueryBuilder()
       .update(User)
-      .set({ username: updateUserInput.username })
+      .set(values)
       .where('id = :id', { id: updateUserInput.id })
       .returning('*')
       .execute()
