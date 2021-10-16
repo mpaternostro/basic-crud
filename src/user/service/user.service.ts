@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { isQueryFailedError } from 'utils/isQueryFailedError';
 import { PostgresErrorCode } from 'utils/postgresErrorCode.enum';
 import { UserRepository } from '../repository/user.repository';
@@ -9,7 +10,10 @@ import { User } from '../entities/user.entity';
 
 @Injectable()
 export class UserService {
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    private userRepository: UserRepository,
+    private configService: ConfigService,
+  ) {}
 
   async findOneById(id: string): Promise<User> {
     const user = await this.userRepository.findUser(id);
@@ -33,13 +37,36 @@ export class UserService {
     return user;
   }
 
+  async findOneByUsernameWithPassword(username: string): Promise<User> {
+    const user = await this.userRepository.findUserByUsernameWithPassword(
+      username,
+    );
+    if (!user) {
+      throw new HttpException(
+        `User ${username} does not exist`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return user;
+  }
+
   async findAll(): Promise<User[]> {
     return this.userRepository.findAllUsers();
   }
 
+  private async hashString(stringToHash: string) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const salt = this.configService.get<number>('PASSWORD_SALT')!;
+    return bcrypt.hash(stringToHash, salt);
+  }
+
   async create(createUserInput: CreateUserInput): Promise<User> {
+    const hashedPassword = await this.hashString(createUserInput.password);
     try {
-      const newUser = await this.userRepository.createUser(createUserInput);
+      const newUser = await this.userRepository.createUser({
+        username: createUserInput.username,
+        password: hashedPassword,
+      });
       return newUser;
     } catch (error) {
       if (
@@ -59,6 +86,11 @@ export class UserService {
   }
 
   async update(updateUserInput: UpdateUserInput): Promise<User> {
+    if (updateUserInput.password) {
+      updateUserInput.password = await this.hashString(
+        updateUserInput.password,
+      );
+    }
     const updateUser = await this.userRepository.updateUser(updateUserInput);
     if (!updateUser) {
       throw new HttpException(
@@ -81,7 +113,7 @@ export class UserService {
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    const hashedRefreshToken = await this.hashString(refreshToken);
     const updatedUser = await this.userRepository.updateUserRefreshToken({
       id: userId,
       hashedRefreshToken,

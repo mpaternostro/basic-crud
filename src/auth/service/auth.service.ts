@@ -2,9 +2,9 @@ import * as bcrypt from 'bcrypt';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserInput } from 'user/dto/create-user.input';
 import { User } from 'user/entities/user.entity';
 import { UserService } from 'user/service/user.service';
-import { RegisterInput } from '../dto/register-input';
 import { TokenPayload } from '../tokenPayload.interface';
 
 @Injectable()
@@ -15,12 +15,8 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(registerInput: RegisterInput) {
-    const hashedPassword = await bcrypt.hash(registerInput.password, 10);
-    return this.userService.create({
-      username: registerInput.username,
-      password: hashedPassword,
-    });
+  async register(createUserInput: CreateUserInput) {
+    return this.userService.create(createUserInput);
   }
 
   private async verifyPassword(
@@ -31,7 +27,7 @@ export class AuthService {
   }
 
   async getAuthenticatedUser(username: string, password: string) {
-    const user = await this.userService.findOneByUsername(username);
+    const user = await this.userService.findOneByUsernameWithPassword(username);
     const isPasswordMatching = await this.verifyPassword(
       password,
       user.password,

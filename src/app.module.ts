@@ -7,7 +7,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from 'user/user.module';
 import { TodoModule } from 'todo/todo.module';
 import { AuthModule } from './auth/auth.module';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DateScalar } from './date-scalar';
 
@@ -23,6 +22,7 @@ import { DateScalar } from './date-scalar';
         JWT_ACCESS_TOKEN_EXPIRATION_TIME: Joi.string().required(),
         JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: Joi.string().required(),
+        PASSWORD_SALT: Joi.number().required(),
       }),
     }),
     GraphQLModule.forRootAsync({
@@ -62,7 +62,6 @@ import { DateScalar } from './date-scalar';
     TodoModule,
     AuthModule,
   ],
-  controllers: [AppController],
   providers: [AppService, DateScalar],
 })
 export class AppModule {}

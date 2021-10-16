@@ -3,15 +3,18 @@ type Todo {
   title: String!
   isCompleted: Boolean!
   user: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 input CreateTodoInput {
   title: String!
-  isCompleted: Boolean = false
 }
 
 input UpdateTodoInput {
   id: ID!
+  title: String
+  isCompleted: Boolean
 }
 
 type Query {

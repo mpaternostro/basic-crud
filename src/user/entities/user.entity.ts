@@ -26,7 +26,7 @@ export class User {
   username: string;
 
   @Exclude()
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @Exclude()
@@ -42,6 +42,6 @@ export class User {
   @UpdateDateColumn({ type: dbType })
   updatedAt: Date;
 
-  @OneToMany(() => Todo, (todo) => todo.id)
+  @OneToMany(() => Todo, (todo) => todo.user)
   todos: Todo[] | null;
 }

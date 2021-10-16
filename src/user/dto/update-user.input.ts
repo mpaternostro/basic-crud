@@ -1,6 +1,17 @@
-import { CreateUserInput } from './create-user.input';
-import { PartialType } from '@nestjs/mapped-types';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
-export class UpdateUserInput extends PartialType(CreateUserInput) {
+export class UpdateUserInput {
+  @IsNotEmpty()
+  @IsString()
   id: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(5)
+  username?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  password?: string;
 }
