@@ -25,6 +25,12 @@ export class TodoRepository extends Repository<Todo> {
       .getOne();
   }
 
+  async findTodoByTitle(title: string): Promise<Todo | undefined> {
+    return this.createQueryBuilder('todo')
+      .where('todo.title = :title', { title })
+      .getOne();
+  }
+
   async findAllTodos(): Promise<Todo[]> {
     return this.createQueryBuilder('todo').getMany();
   }
@@ -46,18 +52,31 @@ export class TodoRepository extends Repository<Todo> {
     createTodoInput: CreateTodoInput,
     user: User,
   ): Promise<Todo> {
-    return this.createQueryBuilder('todo')
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    // in this version, sqlite does not support RETURNING clause
+    if (!isTestEnv) {
+      return this.createQueryBuilder('todo')
+        .insert()
+        .into(Todo)
+        .values({
+          ...createTodoInput,
+          user,
+        })
+        .returning('*')
+        .execute()
+        .then((response: TodoInsertResult) => {
+          return this.create(response.raw[0]);
+        });
+    }
+    await this.createQueryBuilder('todo')
       .insert()
       .into(Todo)
       .values({
         ...createTodoInput,
         user,
       })
-      .returning('*')
-      .execute()
-      .then((response: TodoInsertResult) => {
-        return this.create(response.raw[0]);
-      });
+      .execute();
+    return this.findTodoByTitle(createTodoInput.title) as Promise<Todo>;
   }
 
   async updateTodo(updateTodoInput: UpdateTodoInput): Promise<Todo> {

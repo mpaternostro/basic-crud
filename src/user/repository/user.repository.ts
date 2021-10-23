@@ -25,6 +25,12 @@ export class UserRepository extends Repository<User> {
       .getOne();
   }
 
+  findUserById(id: string) {
+    return this.createQueryBuilder('user')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+
   findUserByUsername(username: string) {
     return this.createQueryBuilder('user')
       .where('user.username = :username', { username })
@@ -42,16 +48,26 @@ export class UserRepository extends Repository<User> {
     return this.createQueryBuilder('user').getMany();
   }
 
-  createUser(createUserInput: CreateUserInput) {
-    return this.createQueryBuilder('user')
+  async createUser(createUserInput: CreateUserInput) {
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    // in this version sqlite does not support RETURNING clause
+    if (!isTestEnv) {
+      return this.createQueryBuilder('user')
+        .insert()
+        .into(User)
+        .values(createUserInput)
+        .returning('*')
+        .execute()
+        .then((response: UserInsertResult) => {
+          return this.create(response.raw[0]);
+        });
+    }
+    await this.createQueryBuilder('user')
       .insert()
       .into(User)
       .values(createUserInput)
-      .returning('*')
-      .execute()
-      .then((response: UserInsertResult) => {
-        return this.create(response.raw[0]);
-      });
+      .execute();
+    return this.findUserByUsername(createUserInput.username) as Promise<User>;
   }
 
   async updateUser(updateUserInput: UpdateUserInput) {
@@ -74,21 +90,33 @@ export class UserRepository extends Repository<User> {
   async updateUserRefreshToken(
     updateUserRefreshTokenInput: updateUserRefreshTokenInput,
   ) {
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    // in this version sqlite does not support RETURNING clause
     const { id, hashedRefreshToken } = updateUserRefreshTokenInput;
-    return this.createQueryBuilder()
+    if (!isTestEnv) {
+      return this.createQueryBuilder()
+        .update(User)
+        .set({
+          currentHashedRefreshToken: hashedRefreshToken,
+        })
+        .where('id = :id', { id })
+        .returning('*')
+        .execute()
+        .then((response: UserUpdateResult) => {
+          if (response.raw[0]) {
+            return this.create(response.raw[0]);
+          }
+          return;
+        });
+    }
+    await this.createQueryBuilder()
       .update(User)
       .set({
         currentHashedRefreshToken: hashedRefreshToken,
       })
       .where('id = :id', { id })
-      .returning('*')
-      .execute()
-      .then((response: UserUpdateResult) => {
-        if (response.raw[0]) {
-          return this.create(response.raw[0]);
-        }
-        return;
-      });
+      .execute();
+    return this.findUserById(updateUserRefreshTokenInput.id);
   }
 
   removeUser(id: string) {
