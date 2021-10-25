@@ -19,6 +19,9 @@ class TodoUpdateResult extends UpdateResult {
 
 @EntityRepository(Todo)
 export class TodoRepository extends Repository<Todo> {
+  // in this version sqlite does not support RETURNING clause
+  private isTestEnv = process.env.NODE_ENV === 'test';
+
   async findTodoById(id: string): Promise<Todo | undefined> {
     return this.createQueryBuilder('todo')
       .where('todo.id = :id', { id })
@@ -52,9 +55,7 @@ export class TodoRepository extends Repository<Todo> {
     createTodoInput: CreateTodoInput,
     user: User,
   ): Promise<Todo> {
-    const isTestEnv = process.env.NODE_ENV === 'test';
-    // in this version, sqlite does not support RETURNING clause
-    if (!isTestEnv) {
+    if (!this.isTestEnv) {
       return this.createQueryBuilder('todo')
         .insert()
         .into(Todo)
@@ -82,26 +83,42 @@ export class TodoRepository extends Repository<Todo> {
   async updateTodo(updateTodoInput: UpdateTodoInput): Promise<Todo> {
     const values: { id?: string } = { ...updateTodoInput };
     delete values.id;
-    return this.createQueryBuilder()
+    if (!this.isTestEnv) {
+      return this.createQueryBuilder()
+        .update(Todo)
+        .set(values)
+        .where('id = :id', { id: updateTodoInput.id })
+        .returning('*')
+        .execute()
+        .then((response: TodoUpdateResult) => {
+          return this.create(response.raw[0]);
+        });
+    }
+    await this.createQueryBuilder()
       .update(Todo)
       .set(values)
       .where('id = :id', { id: updateTodoInput.id })
-      .returning('*')
-      .execute()
-      .then((response: TodoUpdateResult) => {
-        return this.create(response.raw[0]);
-      });
+      .execute();
+    return this.findTodoById(updateTodoInput.id) as Promise<Todo>;
   }
 
   async removeTodo(id: string) {
-    return this.createQueryBuilder()
+    if (!this.isTestEnv) {
+      return this.createQueryBuilder()
+        .delete()
+        .from(Todo)
+        .where('id = :id', { id })
+        .returning('*')
+        .execute()
+        .then((response) => {
+          return response.raw[0];
+        });
+    }
+    await this.createQueryBuilder()
       .delete()
       .from(Todo)
       .where('id = :id', { id })
-      .returning('*')
-      .execute()
-      .then((response) => {
-        return response.raw[0];
-      });
+      .execute();
+    return this.findTodoById(id);
   }
 }

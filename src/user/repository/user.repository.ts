@@ -19,39 +19,40 @@ class UserUpdateResult extends UpdateResult {
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
-  findUser(id: string) {
+  // in this version sqlite does not support RETURNING clause
+  private isTestEnv = process.env.NODE_ENV === 'test';
+
+  async findUser(id: string) {
     return this.createQueryBuilder('user')
       .where('user.id = :id', { id })
       .getOne();
   }
 
-  findUserById(id: string) {
+  async findUserById(id: string) {
     return this.createQueryBuilder('user')
       .where('user.id = :id', { id })
       .getOne();
   }
 
-  findUserByUsername(username: string) {
+  async findUserByUsername(username: string) {
     return this.createQueryBuilder('user')
       .where('user.username = :username', { username })
       .getOne();
   }
 
-  findUserByUsernameWithPassword(username: string) {
+  async findUserByUsernameWithPassword(username: string) {
     return this.createQueryBuilder('user')
       .where('user.username = :username', { username })
       .addSelect('user.password')
       .getOne();
   }
 
-  findAllUsers() {
+  async findAllUsers() {
     return this.createQueryBuilder('user').getMany();
   }
 
   async createUser(createUserInput: CreateUserInput) {
-    const isTestEnv = process.env.NODE_ENV === 'test';
-    // in this version sqlite does not support RETURNING clause
-    if (!isTestEnv) {
+    if (!this.isTestEnv) {
       return this.createQueryBuilder('user')
         .insert()
         .into(User)
@@ -73,27 +74,33 @@ export class UserRepository extends Repository<User> {
   async updateUser(updateUserInput: UpdateUserInput) {
     const values: { id?: string } = { ...updateUserInput };
     delete values.id;
-    return this.createQueryBuilder()
+    if (!this.isTestEnv) {
+      return this.createQueryBuilder()
+        .update(User)
+        .set(values)
+        .where('id = :id', { id: updateUserInput.id })
+        .returning('*')
+        .execute()
+        .then((response: UserUpdateResult) => {
+          if (response.raw[0]) {
+            return this.create(response.raw[0]);
+          }
+          return;
+        });
+    }
+    await this.createQueryBuilder()
       .update(User)
       .set(values)
       .where('id = :id', { id: updateUserInput.id })
-      .returning('*')
-      .execute()
-      .then((response: UserUpdateResult) => {
-        if (response.raw[0]) {
-          return this.create(response.raw[0]);
-        }
-        return;
-      });
+      .execute();
+    return this.findUserById(updateUserInput.id);
   }
 
   async updateUserRefreshToken(
     updateUserRefreshTokenInput: updateUserRefreshTokenInput,
   ) {
-    const isTestEnv = process.env.NODE_ENV === 'test';
-    // in this version sqlite does not support RETURNING clause
     const { id, hashedRefreshToken } = updateUserRefreshTokenInput;
-    if (!isTestEnv) {
+    if (!this.isTestEnv) {
       return this.createQueryBuilder()
         .update(User)
         .set({
@@ -119,18 +126,26 @@ export class UserRepository extends Repository<User> {
     return this.findUserById(updateUserRefreshTokenInput.id);
   }
 
-  removeUser(id: string) {
-    return this.createQueryBuilder()
+  async removeUser(id: string) {
+    if (!this.isTestEnv) {
+      return this.createQueryBuilder()
+        .delete()
+        .from(User)
+        .where('id = :id', { id })
+        .returning('*')
+        .execute()
+        .then((response) => {
+          if (response.raw[0]) {
+            return response.raw[0];
+          }
+          return;
+        });
+    }
+    await this.createQueryBuilder()
       .delete()
       .from(User)
       .where('id = :id', { id })
-      .returning('*')
-      .execute()
-      .then((response) => {
-        if (response.raw[0]) {
-          return response.raw[0];
-        }
-        return;
-      });
+      .execute();
+    return this.findUserById(id);
   }
 }
