@@ -3,7 +3,7 @@ import * as request from 'supertest';
 import * as cookieParser from 'cookie-parser';
 import * as Joi from 'joi';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -13,6 +13,7 @@ import { UserModule } from 'user/user.module';
 import { TodoModule } from 'todo/todo.module';
 import { AuthModule } from 'auth/auth.module';
 import { DateScalar } from '../src/date-scalar';
+import { TrimPipe } from '../src/trim.pipe';
 
 describe('User', () => {
   let app: INestApplication;
@@ -64,6 +65,7 @@ describe('User', () => {
     }).compile();
 
     app = module.createNestApplication();
+    app.useGlobalPipes(new TrimPipe(), new ValidationPipe());
     app.use(cookieParser());
     await app.init();
   });
