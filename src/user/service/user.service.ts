@@ -7,7 +7,7 @@ import { UserRepository } from '../repository/user.repository';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { User } from '../entities/user.entity';
-import { QueryValues } from '../QueryValues.type';
+import { UserQueryValues } from '../UserQueryValues.type';
 
 @Injectable()
 export class UserService {
@@ -15,7 +15,7 @@ export class UserService {
     private userRepository: UserRepository,
     private configService: ConfigService,
   ) {}
-  async findOne(queryValue: QueryValues): Promise<User> {
+  async findOne(queryValue: UserQueryValues): Promise<User> {
     const user = await this.userRepository.findUser(queryValue);
     if (!user) {
       let response = '';
@@ -29,7 +29,7 @@ export class UserService {
     return user;
   }
 
-  async findOneWithPassword(queryValue: QueryValues): Promise<User> {
+  async findOneWithPassword(queryValue: UserQueryValues): Promise<User> {
     const user = await this.userRepository.findUserWithPassword(queryValue);
     if (!user) {
       let response = '';
@@ -37,7 +37,7 @@ export class UserService {
         response = `User # ${queryValue.id} does not exist`;
       } else {
         response = `User ${queryValue.username} does not exist`;
-    }
+      }
       throw new HttpException(response, HttpStatus.NOT_FOUND);
     }
     return user;
@@ -45,6 +45,11 @@ export class UserService {
 
   async findAll(): Promise<User[]> {
     return this.userRepository.findAllUsers();
+  }
+
+  private async verifyPassword(plainTextPassword: string, userId: string) {
+    const userWithPassword = await this.findOneWithPassword({ id: userId });
+    return bcrypt.compare(plainTextPassword, userWithPassword.password);
   }
 
   private async hashString(stringToHash: string) {
@@ -79,6 +84,16 @@ export class UserService {
   }
 
   async update(updateUserInput: UpdateUserInput): Promise<User> {
+    const isValidPassword = await this.verifyPassword(
+      updateUserInput.currentPassword,
+      updateUserInput.id,
+    );
+    if (!isValidPassword) {
+      throw new HttpException(
+        'Passwords did not match',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (updateUserInput.password) {
       updateUserInput.password = await this.hashString(
         updateUserInput.password,

@@ -8,7 +8,7 @@ import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { updateUserRefreshTokenInput } from '../dto/update-user-refresh-token.input';
 import { User } from '../entities/user.entity';
-import { QueryValues } from '../QueryValues.type';
+import { UserQueryValues } from '../UserQueryValues.type';
 
 class UserInsertResult extends InsertResult {
   raw: { id: string }[];
@@ -23,14 +23,14 @@ export class UserRepository extends Repository<User> {
   // in this version sqlite does not support RETURNING clause
   private isTestEnv = process.env.NODE_ENV === 'test';
 
-  async findUser(queryValue: QueryValues) {
+  async findUser(queryValue: UserQueryValues) {
     const queryByField = 'id' in queryValue ? 'id' : 'username';
     return this.createQueryBuilder('user')
       .where(`user.${queryByField} = :${queryByField}`, queryValue)
       .getOne();
   }
 
-  async findUserWithPassword(queryValue: QueryValues) {
+  async findUserWithPassword(queryValue: UserQueryValues) {
     const queryByField = 'id' in queryValue ? 'id' : 'username';
     return this.createQueryBuilder('user')
       .where(`user.${queryByField} = :${queryByField}`, queryValue)
