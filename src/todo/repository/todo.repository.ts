@@ -8,6 +8,7 @@ import { User } from 'user/entities/user.entity';
 import { CreateTodoInput } from '../dto/create-todo.input';
 import { UpdateTodoInput } from '../dto/update-todo.input';
 import { Todo } from '../entities/todo.entity';
+import { TodoQueryValues } from '../TodoQueryValues.type';
 
 class TodoInsertResult extends InsertResult {
   raw: { id: string }[];
@@ -22,17 +23,24 @@ export class TodoRepository extends Repository<Todo> {
   // in this version sqlite does not support RETURNING clause
   private isTestEnv = process.env.NODE_ENV === 'test';
 
-  async findTodoById(id: string): Promise<Todo | undefined> {
+  async findTodo(queryValue: TodoQueryValues) {
+    const queryByField = 'id' in queryValue ? 'id' : 'title';
     return this.createQueryBuilder('todo')
-      .where('todo.id = :id', { id })
+      .where(`todo.${queryByField} = :${queryByField}`, queryValue)
       .getOne();
   }
 
-  async findTodoByTitle(title: string): Promise<Todo | undefined> {
-    return this.createQueryBuilder('todo')
-      .where('todo.title = :title', { title })
-      .getOne();
-  }
+  // async findTodoById(id: string): Promise<Todo | undefined> {
+  //   return this.createQueryBuilder('todo')
+  //     .where('todo.id = :id', { id })
+  //     .getOne();
+  // }
+
+  // async findTodoByTitle(title: string): Promise<Todo | undefined> {
+  //   return this.createQueryBuilder('todo')
+  //     .where('todo.title = :title', { title })
+  //     .getOne();
+  // }
 
   async findAllTodos(): Promise<Todo[]> {
     return this.createQueryBuilder('todo').getMany();
@@ -40,13 +48,6 @@ export class TodoRepository extends Repository<Todo> {
 
   async findAllTodosByUserId(id: string): Promise<Todo[]> {
     return this.createQueryBuilder('todo')
-      .where('todo.user.id = :id', { id })
-      .getMany();
-  }
-
-  async findAllTodosByUserIdWithUser(id: string): Promise<Todo[]> {
-    return this.createQueryBuilder('todo')
-      .leftJoinAndSelect('todo.user', 'user')
       .where('todo.user.id = :id', { id })
       .getMany();
   }
@@ -77,7 +78,7 @@ export class TodoRepository extends Repository<Todo> {
         user,
       })
       .execute();
-    return this.findTodoByTitle(createTodoInput.title) as Promise<Todo>;
+    return this.findTodo({ title: createTodoInput.title }) as Promise<Todo>;
   }
 
   async updateTodo(updateTodoInput: UpdateTodoInput): Promise<Todo> {
@@ -99,7 +100,7 @@ export class TodoRepository extends Repository<Todo> {
       .set(values)
       .where('id = :id', { id: updateTodoInput.id })
       .execute();
-    return this.findTodoById(updateTodoInput.id) as Promise<Todo>;
+    return this.findTodo({ id: updateTodoInput.id }) as Promise<Todo>;
   }
 
   async removeTodo(id: string) {
@@ -119,6 +120,6 @@ export class TodoRepository extends Repository<Todo> {
       .from(Todo)
       .where('id = :id', { id })
       .execute();
-    return this.findTodoById(id);
+    return this.findTodo({ id });
   }
 }

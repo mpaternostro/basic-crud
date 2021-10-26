@@ -27,7 +27,7 @@ export class TodoResolver {
 
   @Query('todo')
   async findOne(@Args('id') id: string): Promise<Todo | undefined> {
-    return this.todoService.findOneById(id);
+    return this.todoService.findOne({ id });
   }
 
   @Query('todos')

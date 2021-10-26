@@ -1,15 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { User } from 'user/entities/user.entity';
 import { TodoRepository } from '../repository/todo.repository';
 import { CreateTodoInput } from '../dto/create-todo.input';
 import { UpdateTodoInput } from '../dto/update-todo.input';
+import { TodoQueryValues } from '../TodoQueryValues.type';
 
 @Injectable()
 export class TodoService {
   constructor(private todoRepository: TodoRepository) {}
 
-  findOneById(id: string) {
-    return this.todoRepository.findTodoById(id);
+  async findOne(queryValue: TodoQueryValues) {
+    const todo = await this.todoRepository.findTodo(queryValue);
+    if (!todo) {
+      let response = '';
+      if ('id' in queryValue) {
+        response = `Todo # ${queryValue.id} does not exist`;
+      } else {
+        response = `Todo named '${queryValue.title}' does not exist`;
+      }
+      throw new HttpException(response, HttpStatus.NOT_FOUND);
+    }
+    return todo;
   }
 
   findAll() {
@@ -20,19 +31,29 @@ export class TodoService {
     return this.todoRepository.findAllTodosByUserId(id);
   }
 
-  findAllByUserIdWithUser(id: string) {
-    return this.todoRepository.findAllTodosByUserIdWithUser(id);
-  }
-
   create(createTodoInput: CreateTodoInput, user: User) {
     return this.todoRepository.createTodo(createTodoInput, user);
   }
 
-  update(updateTodoInput: UpdateTodoInput) {
-    return this.todoRepository.updateTodo(updateTodoInput);
+  async update(updateTodoInput: UpdateTodoInput) {
+    const updatedTodo = await this.todoRepository.updateTodo(updateTodoInput);
+    if (!updatedTodo) {
+      throw new HttpException(
+        `Could not update todo # ${updateTodoInput.id} as it does not exist`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return updatedTodo;
   }
 
-  remove(id: string) {
-    return this.todoRepository.removeTodo(id);
+  async remove(id: string) {
+    const wasRemoved = await this.todoRepository.removeTodo(id);
+    if (!wasRemoved) {
+      throw new HttpException(
+        `Could not remove todo # ${id} as it does not exist`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return wasRemoved;
   }
 }
