@@ -7,6 +7,7 @@ import { UserRepository } from '../repository/user.repository';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { User } from '../entities/user.entity';
+import { QueryValues } from '../QueryValues.type';
 
 @Injectable()
 export class UserService {
@@ -14,38 +15,30 @@ export class UserService {
     private userRepository: UserRepository,
     private configService: ConfigService,
   ) {}
-
-  async findOneById(id: string): Promise<User> {
-    const user = await this.userRepository.findUser(id);
+  async findOne(queryValue: QueryValues): Promise<User> {
+    const user = await this.userRepository.findUser(queryValue);
     if (!user) {
-      throw new HttpException(
-        `User # ${id} does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
+      let response = '';
+      if ('id' in queryValue) {
+        response = `User # ${queryValue.id} does not exist`;
+      } else {
+        response = `User ${queryValue.username} does not exist`;
+      }
+      throw new HttpException(response, HttpStatus.NOT_FOUND);
     }
     return user;
   }
 
-  async findOneByUsername(username: string): Promise<User> {
-    const user = await this.userRepository.findUserByUsername(username);
+  async findOneWithPassword(queryValue: QueryValues): Promise<User> {
+    const user = await this.userRepository.findUserWithPassword(queryValue);
     if (!user) {
-      throw new HttpException(
-        `User ${username} does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
+      let response = '';
+      if ('id' in queryValue) {
+        response = `User # ${queryValue.id} does not exist`;
+      } else {
+        response = `User ${queryValue.username} does not exist`;
     }
-    return user;
-  }
-
-  async findOneByUsernameWithPassword(username: string): Promise<User> {
-    const user = await this.userRepository.findUserByUsernameWithPassword(
-      username,
-    );
-    if (!user) {
-      throw new HttpException(
-        `User ${username} does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException(response, HttpStatus.NOT_FOUND);
     }
     return user;
   }
@@ -145,7 +138,7 @@ export class UserService {
     refreshToken: string,
     username: string,
   ): Promise<User | undefined> {
-    const user = await this.findOneByUsername(username);
+    const user = await this.findOne({ username });
     if (!user.currentHashedRefreshToken) {
       throw new HttpException(
         'User has no current hashed refresh token',

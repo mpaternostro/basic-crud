@@ -24,6 +24,7 @@ export class CreateUserInput {
 
 export class UpdateUserInput {
     id: string;
+    currentPassword: string;
     username?: Nullable<string>;
     password?: Nullable<string>;
 }

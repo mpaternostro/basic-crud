@@ -11,14 +11,14 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
+import { GqlAuthGuard } from 'auth/guard/gql-auth.guard';
+import { CurrentUser } from 'auth/current-user.decorator';
+import { Todo } from 'todo/entities/todo.entity';
 import { TodoService } from 'todo/service/todo.service';
 import { User } from '../entities/user.entity';
 import { UserService } from '../service/user.service';
-import { GqlAuthGuard } from '../../auth/guard/gql-auth.guard';
-import { CurrentUser } from '../../auth/current-user.decorator';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
-import { Todo } from 'todo/entities/todo.entity';
 
 @Resolver('User')
 @UseGuards(GqlAuthGuard)
@@ -36,7 +36,7 @@ export class UserResolver {
 
   @Query('user')
   async findOne(@Args('id') id: string): Promise<User> {
-    return this.userService.findOneById(id);
+    return this.userService.findOne({ id });
   }
 
   @Query('users')

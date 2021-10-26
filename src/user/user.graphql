@@ -17,6 +17,7 @@ input CreateUserInput {
 
 input UpdateUserInput {
   id: ID!
+  currentPassword: String!
   username: String
   password: String
 }

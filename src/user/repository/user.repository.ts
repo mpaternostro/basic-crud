@@ -8,6 +8,7 @@ import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { updateUserRefreshTokenInput } from '../dto/update-user-refresh-token.input';
 import { User } from '../entities/user.entity';
+import { QueryValues } from '../QueryValues.type';
 
 class UserInsertResult extends InsertResult {
   raw: { id: string }[];
@@ -22,27 +23,17 @@ export class UserRepository extends Repository<User> {
   // in this version sqlite does not support RETURNING clause
   private isTestEnv = process.env.NODE_ENV === 'test';
 
-  async findUser(id: string) {
+  async findUser(queryValue: QueryValues) {
+    const queryByField = 'id' in queryValue ? 'id' : 'username';
     return this.createQueryBuilder('user')
-      .where('user.id = :id', { id })
+      .where(`user.${queryByField} = :${queryByField}`, queryValue)
       .getOne();
   }
 
-  async findUserById(id: string) {
+  async findUserWithPassword(queryValue: QueryValues) {
+    const queryByField = 'id' in queryValue ? 'id' : 'username';
     return this.createQueryBuilder('user')
-      .where('user.id = :id', { id })
-      .getOne();
-  }
-
-  async findUserByUsername(username: string) {
-    return this.createQueryBuilder('user')
-      .where('user.username = :username', { username })
-      .getOne();
-  }
-
-  async findUserByUsernameWithPassword(username: string) {
-    return this.createQueryBuilder('user')
-      .where('user.username = :username', { username })
+      .where(`user.${queryByField} = :${queryByField}`, queryValue)
       .addSelect('user.password')
       .getOne();
   }
@@ -68,12 +59,17 @@ export class UserRepository extends Repository<User> {
       .into(User)
       .values(createUserInput)
       .execute();
-    return this.findUserByUsername(createUserInput.username) as Promise<User>;
+    return this.findUser({
+      username: createUserInput.username,
+    }) as Promise<User>;
   }
 
   async updateUser(updateUserInput: UpdateUserInput) {
-    const values: { id?: string } = { ...updateUserInput };
+    const values: { id?: string; currentPassword?: string } = {
+      ...updateUserInput,
+    };
     delete values.id;
+    delete values.currentPassword;
     if (!this.isTestEnv) {
       return this.createQueryBuilder()
         .update(User)
@@ -93,7 +89,7 @@ export class UserRepository extends Repository<User> {
       .set(values)
       .where('id = :id', { id: updateUserInput.id })
       .execute();
-    return this.findUserById(updateUserInput.id);
+    return this.findUser({ id: updateUserInput.id });
   }
 
   async updateUserRefreshToken(
@@ -123,7 +119,7 @@ export class UserRepository extends Repository<User> {
       })
       .where('id = :id', { id })
       .execute();
-    return this.findUserById(updateUserRefreshTokenInput.id);
+    return this.findUser({ id: updateUserRefreshTokenInput.id });
   }
 
   async removeUser(id: string) {
@@ -146,6 +142,6 @@ export class UserRepository extends Repository<User> {
       .from(User)
       .where('id = :id', { id })
       .execute();
-    return this.findUserById(id);
+    return this.findUser({ id });
   }
 }

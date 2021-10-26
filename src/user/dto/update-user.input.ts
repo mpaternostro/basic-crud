@@ -5,6 +5,10 @@ export class UpdateUserInput {
   @IsString()
   id: string;
 
+  @IsString()
+  @MinLength(8)
+  currentPassword: string;
+
   @IsOptional()
   @IsString()
   @MinLength(5)
