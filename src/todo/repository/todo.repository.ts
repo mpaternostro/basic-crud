@@ -115,11 +115,12 @@ export class TodoRepository extends Repository<Todo> {
           return response.raw[0];
         });
     }
+    const todo = await this.findTodo({ id });
     await this.createQueryBuilder()
       .delete()
       .from(Todo)
       .where('id = :id', { id })
       .execute();
-    return this.findTodo({ id });
+    return todo;
   }
 }

@@ -70,9 +70,11 @@ describe('User', () => {
     await app.init();
   });
 
-  let cookie: string;
+  let cookie = '';
+  let someUserId = '';
+  let someTodoId = '';
 
-  it('should register new user', () => {
+  it('should register new user [/auth/register]', () => {
     return request(app.getHttpServer())
       .post('/auth/register')
       .send({
@@ -84,7 +86,7 @@ describe('User', () => {
       .expect(201);
   });
 
-  it('should login successfully', () => {
+  it('should login successfully [/auth/login]', () => {
     return request(app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -99,11 +101,121 @@ describe('User', () => {
       });
   });
 
-  it('should create a new todo', () => {
+  it('should fetch current user [whoAmI]', () => {
     return request(app.getHttpServer())
       .post('/graphql')
       .send({
-        operationName: 'createTodo',
+        query: `query whoami {
+          whoAmI {
+            id
+            username
+            password
+            createdAt
+            updatedAt
+            todos {
+              id
+              title
+              isCompleted
+              createdAt
+              updatedAt
+            }
+          }
+        }`,
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.data.whoAmI).toHaveProperty('id');
+        someUserId = response.body.data.whoAmI.id;
+      });
+  });
+
+  it('should fetch a single user [getUser]', () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `query getUser($id: ID!) {
+          user(id: $id) {
+            id
+            username
+            createdAt
+            updatedAt
+            todos {
+              id
+              title
+              isCompleted
+            }
+          }
+        }`,
+        variables: {
+          id: someUserId,
+        },
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.data.user).toHaveProperty('id');
+      });
+  });
+
+  it("should update user's username and password [updateUser]", () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `mutation updateUser($user: UpdateUserInput!) {
+          updateUser(updateUserInput: $user) {
+            id
+            username
+            createdAt
+            updatedAt
+          }
+        }`,
+        variables: {
+          user: {
+            id: someUserId,
+            username: 'updatedTester',
+            currentPassword: 'newpassword',
+            password: 'newsecurepassword',
+          },
+        },
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.data.updateUser).toHaveProperty('id');
+        expect(response.body.data.updateUser).toHaveProperty(
+          'username',
+          'updatedTester',
+        );
+        cookie = response.headers['set-cookie'];
+      });
+  });
+
+  it('should login successfully with new credentials [/auth/login]', () => {
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        username: 'updatedTester',
+        password: 'newsecurepassword',
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect((response) => {
+        cookie = response.headers['set-cookie'];
+      });
+  });
+
+  it('should create a new todo [/createTodo]', () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({
         query: `mutation createTodo($todo: CreateTodoInput!) {
           createTodo(createTodoInput: $todo) {
             id
@@ -127,14 +239,56 @@ describe('User', () => {
       .expect(200)
       .expect((response) => {
         expect(response.body.data.createTodo).toHaveProperty('id');
+        someTodoId = response.body.data.createTodo.id;
       });
   });
 
-  it('should return all users with todos', () => {
+  it('should create and delete a new user [/auth/register]', () => {
+    let someNewUserId = '';
+    return request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        username: 'testertobedeleted',
+        password: 'newpassword',
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+      .then((response) => {
+        someNewUserId = response.body.id;
+        return request(app.getHttpServer())
+          .post('/graphql')
+          .send({
+            query: `mutation removeUser($id: ID!) {
+              removeUser(id: $id) {
+                id
+                username
+                createdAt
+                updatedAt
+              }
+            }`,
+            variables: {
+              id: someNewUserId,
+            },
+          })
+          .set('Content-Type', 'application/json')
+          .set('Accept', 'application/json')
+          .set('Cookie', cookie)
+          .expect(200)
+          .expect((response) => {
+            expect(response.body.data.removeUser).toHaveProperty('id');
+            expect(response.body.data.removeUser).toHaveProperty(
+              'username',
+              'testertobedeleted',
+            );
+          });
+      });
+  });
+
+  it('should return all users with todos [getUsers]', () => {
     return request(app.getHttpServer())
       .post('/graphql')
       .send({
-        operationName: 'getUsers',
         query: `query getUsers {
           users {
             id
@@ -157,6 +311,141 @@ describe('User', () => {
       .expect((response) => {
         expect(response.body.data.users).toHaveLength(1);
         expect(response.body.data.users[0].todos).toHaveLength(1);
+      });
+  });
+
+  it('should update some todo [updateTodo]', () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `mutation updateTodo($todo: UpdateTodoInput!) {
+          updateTodo(updateTodoInput: $todo) {
+            id
+            title
+            isCompleted
+            user {
+              id
+            }
+          }
+        }`,
+        variables: {
+          todo: {
+            id: someTodoId,
+            title: '  Updated todo test  ',
+          },
+        },
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.data.updateTodo).toHaveProperty('id');
+        expect(response.body.data.updateTodo).toHaveProperty(
+          'title',
+          'Updated todo test',
+        );
+      });
+  });
+
+  it('should get some todo [getTodo]', () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `query getTodo($id: ID!) {
+          todo(id: $id) {
+            id
+            title
+            isCompleted
+            user {
+              id
+            }
+          }
+        }`,
+        variables: {
+          id: someTodoId,
+        },
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.data.todo).toHaveProperty('id');
+        expect(response.body.data.todo).toHaveProperty(
+          'title',
+          'Updated todo test',
+        );
+        expect(response.body.data.todo.user).toHaveProperty('id', someUserId);
+      });
+  });
+
+  it('should delete some todo [/removeTodo]', () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `mutation removeTodo($id: ID!) {
+          removeTodo(id: $id) {
+            id
+            title
+            isCompleted
+          }
+        }`,
+        variables: {
+          id: someTodoId,
+        },
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.data.removeTodo).toHaveProperty('id');
+        expect(response.body.data.removeTodo).toHaveProperty(
+          'title',
+          'Updated todo test',
+        );
+      });
+  });
+
+  it('should get all todos [getTodos]', () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({
+        query: `query getTodos {
+          todos {
+            id
+            title
+            isCompleted
+            user {
+              id
+              username
+              password
+              currentHashedRefreshToken
+              createdAt
+              updatedAt
+            }
+          }
+        }`,
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.data.todos).toHaveLength(0);
+      });
+  });
+
+  it('should logout successfully [/auth/logout]', () => {
+    return request(app.getHttpServer())
+      .post('/auth/logout')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        cookie = response.headers['set-cookie'];
       });
   });
 

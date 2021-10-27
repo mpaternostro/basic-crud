@@ -137,11 +137,12 @@ export class UserRepository extends Repository<User> {
           return;
         });
     }
+    const user = await this.findUser({ id });
     await this.createQueryBuilder()
       .delete()
       .from(User)
       .where('id = :id', { id })
       .execute();
-    return this.findUser({ id });
+    return user;
   }
 }
