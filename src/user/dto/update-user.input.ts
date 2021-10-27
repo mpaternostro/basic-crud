@@ -18,4 +18,7 @@ export class UpdateUserInput {
   @IsString()
   @MinLength(8)
   password?: string;
+
+  @IsOptional()
+  currentHashedRefreshToken?: null;
 }

@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import {
   ClassSerializerInterceptor,
   UseGuards,
@@ -10,7 +11,9 @@ import {
   Args,
   ResolveField,
   Parent,
+  Context,
 } from '@nestjs/graphql';
+import { getCookiesForLogOut } from 'utils/getCookiesForLogOut';
 import { GqlAuthGuard } from 'auth/guard/gql-auth.guard';
 import { CurrentUser } from 'auth/current-user.decorator';
 import { Todo } from 'todo/entities/todo.entity';
@@ -58,10 +61,16 @@ export class UserResolver {
   }
 
   @Mutation('updateUser')
-  update(
+  async update(
     @Args('updateUserInput') updateUserInput: UpdateUserInput,
+    @Context('req') req: Request,
   ): Promise<User> {
-    return this.userService.update(updateUserInput);
+    const updatedUser = await this.userService.update(updateUserInput);
+    if (updateUserInput.username) {
+      // if username changed, user must be logged out
+      req.res?.setHeader('Set-Cookie', getCookiesForLogOut());
+    }
+    return updatedUser;
   }
 
   @Mutation('removeUser')

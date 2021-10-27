@@ -99,6 +99,10 @@ export class UserService {
         updateUserInput.password,
       );
     }
+    if (updateUserInput.username) {
+      // if username changed, user refresh token must be nullified
+      updateUserInput.currentHashedRefreshToken = null;
+    }
     const updateUser = await this.userRepository.updateUser(updateUserInput);
     if (!updateUser) {
       throw new HttpException(

@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { getCookiesForLogOut } from 'utils/getCookiesForLogOut';
 import { CreateUserInput } from 'user/dto/create-user.input';
 import { User } from 'user/entities/user.entity';
 import { UserService } from 'user/service/user.service';
@@ -72,6 +73,6 @@ export class AuthController {
       throw new Error('Cannot access Response.');
     }
     await this.userService.removeRefreshToken(req.user.id);
-    res.setHeader('Set-Cookie', this.authService.getCookiesForLogOut());
+    res.setHeader('Set-Cookie', getCookiesForLogOut());
   }
 }
