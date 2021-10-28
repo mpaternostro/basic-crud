@@ -48,7 +48,7 @@ export class UserResolver {
   }
 
   @ResolveField('todos')
-  async findTodos(@Parent() user): Promise<Todo[]> {
+  async findTodos(@Parent() user: User): Promise<Todo[]> {
     const { id } = user;
     return this.todoService.findAllByUserId(id);
   }
