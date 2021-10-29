@@ -29,6 +29,11 @@ export class UpdateUserInput {
     password?: Nullable<string>;
 }
 
+export class RemoveUserInput {
+    id: string;
+    currentPassword: string;
+}
+
 export class Todo {
     id: string;
     title: string;
@@ -61,7 +66,7 @@ export abstract class IMutation {
 
     abstract updateUser(updateUserInput: UpdateUserInput): User | Promise<User>;
 
-    abstract removeUser(id: string): Nullable<User> | Promise<Nullable<User>>;
+    abstract removeUser(removeUserInput: RemoveUserInput): Nullable<User> | Promise<Nullable<User>>;
 }
 
 export class User {

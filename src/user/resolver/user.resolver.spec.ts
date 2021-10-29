@@ -12,6 +12,7 @@ import { UserResolver } from './user.resolver';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { Request } from 'express';
+import { RemoveUserInput } from 'user/dto/remove-user.input';
 
 export type MockType<T> = {
   [P in keyof T]?: jest.Mock<unknown>;
@@ -141,11 +142,11 @@ describe('UserResolver', () => {
 
   it('should remove a user', async () => {
     const expectedResult = new User();
-    const userTestId = '123';
+    const removeUserInput = new RemoveUserInput();
     jest
       .spyOn(userService, 'remove')
       .mockImplementation(() => Promise.resolve(expectedResult));
-    expect(await userResolver.remove(userTestId)).toEqual(expectedResult);
+    expect(await userResolver.remove(removeUserInput)).toEqual(expectedResult);
   });
 
   afterEach(() => {

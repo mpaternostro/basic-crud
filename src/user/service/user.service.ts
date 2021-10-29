@@ -47,7 +47,7 @@ export class UserService {
     return this.userRepository.findAllUsers();
   }
 
-  private async verifyPassword(plainTextPassword: string, userId: string) {
+  async verifyPassword(plainTextPassword: string, userId: string) {
     const userWithPassword = await this.findOneWithPassword({ id: userId });
     return bcrypt.compare(plainTextPassword, userWithPassword.password);
   }
@@ -84,16 +84,6 @@ export class UserService {
   }
 
   async update(updateUserInput: UpdateUserInput): Promise<User> {
-    const isValidPassword = await this.verifyPassword(
-      updateUserInput.currentPassword,
-      updateUserInput.id,
-    );
-    if (!isValidPassword) {
-      throw new HttpException(
-        'Passwords did not match',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
     if (updateUserInput.password) {
       updateUserInput.password = await this.hashString(
         updateUserInput.password,
@@ -104,24 +94,16 @@ export class UserService {
       updateUserInput.currentHashedRefreshToken = null;
     }
     const updateUser = await this.userRepository.updateUser(updateUserInput);
-    if (!updateUser) {
-      throw new HttpException(
-        `Could not update user ${updateUserInput.username} as it does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    return updateUser;
+    // we are sure that the user exists as we previously verified currentPassword
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return updateUser!;
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<User> {
     const wasRemoved = await this.userRepository.removeUser(id);
-    if (!wasRemoved) {
-      throw new HttpException(
-        `Could not remove user # ${id} as it does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    return wasRemoved;
+    // we are sure that the user exists as we previously verified currentPassword
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return wasRemoved!;
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {

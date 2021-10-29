@@ -243,7 +243,7 @@ describe('User', () => {
       });
   });
 
-  it('should create and delete a new user [/auth/register]', () => {
+  it('should create and delete a new user [/auth/register & removeUser]', () => {
     let someNewUserId = '';
     return request(app.getHttpServer())
       .post('/auth/register')
@@ -259,8 +259,8 @@ describe('User', () => {
         return request(app.getHttpServer())
           .post('/graphql')
           .send({
-            query: `mutation removeUser($id: ID!) {
-              removeUser(id: $id) {
+            query: `mutation removeUser($user: RemoveUserInput!) {
+              removeUser(removeUserInput: $user) {
                 id
                 username
                 createdAt
@@ -268,7 +268,10 @@ describe('User', () => {
               }
             }`,
             variables: {
-              id: someNewUserId,
+              user: {
+                id: someNewUserId,
+                currentPassword: 'newpassword',
+              },
             },
           })
           .set('Content-Type', 'application/json')

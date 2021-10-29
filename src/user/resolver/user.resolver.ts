@@ -22,6 +22,8 @@ import { User } from '../entities/user.entity';
 import { UserService } from '../service/user.service';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
+import { RemoveUserInput } from '../dto/remove-user.input';
+import { VerifyPasswordGuard } from 'auth/guard/verify-password.guard';
 
 @Resolver('User')
 @UseGuards(GqlAuthGuard)
@@ -60,6 +62,7 @@ export class UserResolver {
     return this.userService.create(createUserInput);
   }
 
+  @UseGuards(VerifyPasswordGuard)
   @Mutation('updateUser')
   async update(
     @Args('updateUserInput') updateUserInput: UpdateUserInput,
@@ -73,8 +76,9 @@ export class UserResolver {
     return updatedUser;
   }
 
+  @UseGuards(VerifyPasswordGuard)
   @Mutation('removeUser')
-  remove(@Args('id') id: string) {
-    return this.userService.remove(id);
+  remove(@Args('removeUserInput') removeUserInput: RemoveUserInput) {
+    return this.userService.remove(removeUserInput.id);
   }
 }
