@@ -138,7 +138,7 @@ export class UserService {
   async getUserIfRefreshTokenMatches(
     refreshToken: string,
     username: string,
-  ): Promise<User | undefined> {
+  ): Promise<User> {
     const user = await this.findOne({ username });
     if (!user.currentHashedRefreshToken) {
       throw new HttpException(
@@ -154,5 +154,9 @@ export class UserService {
     if (isRefreshTokenMatching) {
       return user;
     }
+    throw new HttpException(
+      'Refresh token does not match with stored refresh token',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 }
