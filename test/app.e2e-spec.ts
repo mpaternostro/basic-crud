@@ -440,6 +440,19 @@ describe('User', () => {
       });
   });
 
+  it('should refresh access token [/auth/refresh]', () => {
+    return request(app.getHttpServer())
+      .get('/auth/refresh')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toHaveProperty('id');
+        cookie = response.headers['set-cookie'];
+      });
+  });
+
   it('should logout successfully [/auth/logout]', () => {
     return request(app.getHttpServer())
       .post('/auth/logout')
