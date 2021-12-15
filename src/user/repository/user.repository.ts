@@ -1,4 +1,5 @@
 import {
+  DeleteResult,
   EntityRepository,
   InsertResult,
   Repository,
@@ -6,7 +7,7 @@ import {
 } from 'typeorm';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
-import { updateUserRefreshTokenInput } from '../dto/update-user-refresh-token.input';
+import { UpdateUserRefreshTokenInput } from '../dto/update-user-refresh-token.input';
 import { User } from '../entities/user.entity';
 import { UserQueryValues } from '../UserQueryValues.type';
 
@@ -15,6 +16,10 @@ class UserInsertResult extends InsertResult {
 }
 
 class UserUpdateResult extends UpdateResult {
+  raw: { id: string }[];
+}
+
+class UserDeleteResult extends DeleteResult {
   raw: { id: string }[];
 }
 
@@ -93,7 +98,7 @@ export class UserRepository extends Repository<User> {
   }
 
   async updateUserRefreshToken(
-    updateUserRefreshTokenInput: updateUserRefreshTokenInput,
+    updateUserRefreshTokenInput: UpdateUserRefreshTokenInput,
   ) {
     const { id, hashedRefreshToken } = updateUserRefreshTokenInput;
     if (!this.isTestEnv) {
@@ -130,9 +135,9 @@ export class UserRepository extends Repository<User> {
         .where('id = :id', { id })
         .returning('*')
         .execute()
-        .then((response) => {
+        .then((response: UserDeleteResult) => {
           if (response.raw[0]) {
-            return response.raw[0];
+            return this.create(response.raw[0]);
           }
           return;
         });
