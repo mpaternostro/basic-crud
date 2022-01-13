@@ -50,7 +50,7 @@ export class AuthService {
       )}`,
     });
     return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get<string>(
-      'JWT_EXPIRATION_TIME',
+      'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
     )}`;
   }
 
