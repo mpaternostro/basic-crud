@@ -117,7 +117,10 @@
     "coverageDirectory": "../coverage",
     "coveragePathIgnorePatterns": [
       "/node_modules/",
-      "/dist/"
+      "/dist/",
+      "/src/graphql.ts",
+      "/src/generate-typings.ts",
+      ".module.ts"
     ],
     "testEnvironment": "node"
   }

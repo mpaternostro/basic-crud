@@ -7,7 +7,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from 'user/user.module';
 import { TodoModule } from 'todo/todo.module';
 import { AuthModule } from './auth/auth.module';
-import { AppService } from './app.service';
 import { DateScalar } from './date-scalar';
 
 @Module({
@@ -62,6 +61,6 @@ import { DateScalar } from './date-scalar';
     TodoModule,
     AuthModule,
   ],
-  providers: [AppService, DateScalar],
+  providers: [DateScalar],
 })
 export class AppModule {}
