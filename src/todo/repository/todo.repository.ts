@@ -1,4 +1,5 @@
 import {
+  DeleteResult,
   EntityRepository,
   InsertResult,
   Repository,
@@ -18,6 +19,10 @@ class TodoUpdateResult extends UpdateResult {
   raw: { id: string }[];
 }
 
+class TodoDeleteResult extends DeleteResult {
+  raw: { id: string }[];
+}
+
 @EntityRepository(Todo)
 export class TodoRepository extends Repository<Todo> {
   // in this version sqlite does not support RETURNING clause
@@ -29,18 +34,6 @@ export class TodoRepository extends Repository<Todo> {
       .where(`todo.${queryByField} = :${queryByField}`, queryValue)
       .getOne();
   }
-
-  // async findTodoById(id: string): Promise<Todo | undefined> {
-  //   return this.createQueryBuilder('todo')
-  //     .where('todo.id = :id', { id })
-  //     .getOne();
-  // }
-
-  // async findTodoByTitle(title: string): Promise<Todo | undefined> {
-  //   return this.createQueryBuilder('todo')
-  //     .where('todo.title = :title', { title })
-  //     .getOne();
-  // }
 
   async findAllTodos(): Promise<Todo[]> {
     return this.createQueryBuilder('todo').getMany();
@@ -81,7 +74,9 @@ export class TodoRepository extends Repository<Todo> {
     return this.findTodo({ title: createTodoInput.title }) as Promise<Todo>;
   }
 
-  async updateTodo(updateTodoInput: UpdateTodoInput): Promise<Todo> {
+  async updateTodo(
+    updateTodoInput: UpdateTodoInput,
+  ): Promise<Todo | undefined> {
     const values: { id?: string } = { ...updateTodoInput };
     delete values.id;
     if (!this.isTestEnv) {
@@ -92,7 +87,10 @@ export class TodoRepository extends Repository<Todo> {
         .returning('*')
         .execute()
         .then((response: TodoUpdateResult) => {
-          return this.create(response.raw[0]);
+          if (response.raw[0]) {
+            return this.create(response.raw[0]);
+          }
+          return;
         });
     }
     await this.createQueryBuilder()
@@ -100,7 +98,7 @@ export class TodoRepository extends Repository<Todo> {
       .set(values)
       .where('id = :id', { id: updateTodoInput.id })
       .execute();
-    return this.findTodo({ id: updateTodoInput.id }) as Promise<Todo>;
+    return this.findTodo({ id: updateTodoInput.id });
   }
 
   async removeTodo(id: string) {
@@ -111,8 +109,11 @@ export class TodoRepository extends Repository<Todo> {
         .where('id = :id', { id })
         .returning('*')
         .execute()
-        .then((response) => {
-          return response.raw[0];
+        .then((response: TodoDeleteResult) => {
+          if (response.raw[0]) {
+            return this.create(response.raw[0]);
+          }
+          return;
         });
     }
     const todo = await this.findTodo({ id });
