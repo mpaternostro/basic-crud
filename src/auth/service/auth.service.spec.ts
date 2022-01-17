@@ -82,7 +82,7 @@ describe('AuthService', () => {
   it('should return cookie with access token', () => {
     const user = new User();
 
-    expect(authService.getCookieWithJwtAccessToken(user)).toMatch(
+    expect(authService.getCookieWithJwtAccessToken(user).cookie).toMatch(
       'Authentication',
     );
   });

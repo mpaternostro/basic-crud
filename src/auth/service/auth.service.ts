@@ -49,9 +49,13 @@ export class AuthService {
         'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
       )}`,
     });
-    return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get<string>(
+    const cookie = `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get<string>(
       'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
     )}`;
+    return {
+      cookie,
+      token,
+    };
   }
 
   getCookieWithJwtRefreshToken(user: User) {

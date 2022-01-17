@@ -106,6 +106,10 @@ export class UserService {
     return wasRemoved!;
   }
 
+  /**
+   * Store refresh token in database so we can later check if it's valid when user tries
+   * to refresh token
+   */
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
     const hashedRefreshToken = await this.hashString(refreshToken);
     const updatedUser = await this.userRepository.updateUserRefreshToken({

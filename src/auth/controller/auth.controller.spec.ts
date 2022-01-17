@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 
 describe('AuthController', () => {
   let authController: AuthController;
+  let userService: UserService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,12 +24,13 @@ describe('AuthController', () => {
           provide: AuthService,
           useValue: {
             register: jest.fn().mockResolvedValue(new User()),
-            getCookieWithJwtAccessToken: jest
-              .fn()
-              .mockResolvedValue('accessToken'),
-            getCookieWithJwtRefreshToken: jest.fn().mockResolvedValue({
+            getCookieWithJwtAccessToken: jest.fn().mockReturnValue({
+              token: 'accessToken',
+              cookie: 'accessTokenCookie',
+            }),
+            getCookieWithJwtRefreshToken: jest.fn().mockReturnValue({
               token: 'refreshToken',
-              cookie: 'cookie',
+              cookie: 'refreshTokenCookie',
             }),
           },
         },
@@ -36,6 +38,7 @@ describe('AuthController', () => {
     }).compile();
 
     authController = module.get<AuthController>(AuthController);
+    userService = module.get<UserService>(UserService);
   });
 
   it('should be defined', () => {
@@ -62,6 +65,14 @@ describe('AuthController', () => {
       User,
     );
     expect(requestWithUser.res.setHeader).toHaveBeenCalledTimes(1);
+    expect(requestWithUser.res.setHeader).toHaveBeenCalledWith('Set-Cookie', [
+      'accessTokenCookie',
+      'refreshTokenCookie',
+    ]);
+    expect(userService.setCurrentRefreshToken).toHaveBeenCalledWith(
+      'refreshToken',
+      user.id,
+    );
   });
 
   it('should return an error when Response object is not provided on login', async () => {
@@ -75,7 +86,7 @@ describe('AuthController', () => {
     ).rejects.toThrow();
   });
 
-  it('should set header and return user on token refresh', () => {
+  it('should set header and return user on token refresh', async () => {
     const user = new User();
     const requestWithUser = {
       user,
@@ -84,8 +95,18 @@ describe('AuthController', () => {
       },
     };
 
-    expect(authController.refresh(requestWithUser as any)).toBeInstanceOf(User);
+    expect(await authController.refresh(requestWithUser as any)).toBeInstanceOf(
+      User,
+    );
     expect(requestWithUser.res.setHeader).toHaveBeenCalledTimes(1);
+    expect(requestWithUser.res.setHeader).toHaveBeenCalledWith('Set-Cookie', [
+      'accessTokenCookie',
+      'refreshTokenCookie',
+    ]);
+    expect(userService.setCurrentRefreshToken).toHaveBeenCalledWith(
+      'refreshToken',
+      user.id,
+    );
   });
 
   it('should return an error when Response object is not provided on token refresh', async () => {
@@ -94,9 +115,9 @@ describe('AuthController', () => {
       user,
     };
 
-    expect(() =>
+    await expect(() =>
       authController.refresh(requestWithoutResponse as any),
-    ).toThrow();
+    ).rejects.toThrow();
   });
 
   it('should set header on logout', async () => {
