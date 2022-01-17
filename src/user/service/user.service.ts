@@ -7,6 +7,7 @@ import { UserRepository } from '../repository/user.repository';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
 import { User } from '../entities/user.entity';
+import { UserQueryValues } from '../UserQueryValues.type';
 
 @Injectable()
 export class UserService {
@@ -14,44 +15,41 @@ export class UserService {
     private userRepository: UserRepository,
     private configService: ConfigService,
   ) {}
-
-  async findOneById(id: string): Promise<User> {
-    const user = await this.userRepository.findUser(id);
+  async findOne(queryValue: UserQueryValues): Promise<User> {
+    const user = await this.userRepository.findUser(queryValue);
     if (!user) {
-      throw new HttpException(
-        `User # ${id} does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
+      let response = '';
+      if ('id' in queryValue) {
+        response = `User # ${queryValue.id} does not exist`;
+      } else {
+        response = `User ${queryValue.username} does not exist`;
+      }
+      throw new HttpException(response, HttpStatus.NOT_FOUND);
     }
     return user;
   }
 
-  async findOneByUsername(username: string): Promise<User> {
-    const user = await this.userRepository.findUserByUsername(username);
+  async findOneWithPassword(queryValue: UserQueryValues): Promise<User> {
+    const user = await this.userRepository.findUserWithPassword(queryValue);
     if (!user) {
-      throw new HttpException(
-        `User ${username} does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    return user;
-  }
-
-  async findOneByUsernameWithPassword(username: string): Promise<User> {
-    const user = await this.userRepository.findUserByUsernameWithPassword(
-      username,
-    );
-    if (!user) {
-      throw new HttpException(
-        `User ${username} does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
+      let response = '';
+      if ('id' in queryValue) {
+        response = `User # ${queryValue.id} does not exist`;
+      } else {
+        response = `User ${queryValue.username} does not exist`;
+      }
+      throw new HttpException(response, HttpStatus.NOT_FOUND);
     }
     return user;
   }
 
   async findAll(): Promise<User[]> {
     return this.userRepository.findAllUsers();
+  }
+
+  async verifyPassword(plainTextPassword: string, userId: string) {
+    const userWithPassword = await this.findOneWithPassword({ id: userId });
+    return bcrypt.compare(plainTextPassword, userWithPassword.password);
   }
 
   private async hashString(stringToHash: string) {
@@ -91,27 +89,27 @@ export class UserService {
         updateUserInput.password,
       );
     }
+    if (updateUserInput.username) {
+      // if username changed, user refresh token must be nullified
+      updateUserInput.currentHashedRefreshToken = null;
+    }
     const updateUser = await this.userRepository.updateUser(updateUserInput);
-    if (!updateUser) {
-      throw new HttpException(
-        `Could not update user ${updateUserInput.username} as it does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    return updateUser;
+    // we are sure that the user exists as we previously verified currentPassword
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return updateUser!;
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<User> {
     const wasRemoved = await this.userRepository.removeUser(id);
-    if (!wasRemoved) {
-      throw new HttpException(
-        `Could not remove user # ${id} as it does not exist`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    return wasRemoved;
+    // we are sure that the user exists as we previously verified currentPassword
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return wasRemoved!;
   }
 
+  /**
+   * Store refresh token in database so we can later check if it's valid when user tries
+   * to refresh token
+   */
   async setCurrentRefreshToken(refreshToken: string, userId: string) {
     const hashedRefreshToken = await this.hashString(refreshToken);
     const updatedUser = await this.userRepository.updateUserRefreshToken({
@@ -144,8 +142,8 @@ export class UserService {
   async getUserIfRefreshTokenMatches(
     refreshToken: string,
     username: string,
-  ): Promise<User | undefined> {
-    const user = await this.findOneByUsername(username);
+  ): Promise<User> {
+    const user = await this.findOne({ username });
     if (!user.currentHashedRefreshToken) {
       throw new HttpException(
         'User has no current hashed refresh token',
@@ -160,5 +158,9 @@ export class UserService {
     if (isRefreshTokenMatching) {
       return user;
     }
+    throw new HttpException(
+      'Refresh token does not match with stored refresh token',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 }

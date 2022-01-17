@@ -27,7 +27,7 @@ export class AuthService {
   }
 
   async getAuthenticatedUser(username: string, password: string) {
-    const user = await this.userService.findOneByUsernameWithPassword(username);
+    const user = await this.userService.findOneWithPassword({ username });
     const isPasswordMatching = await this.verifyPassword(
       password,
       user.password,
@@ -49,9 +49,13 @@ export class AuthService {
         'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
       )}`,
     });
-    return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get<string>(
-      'JWT_EXPIRATION_TIME',
+    const cookie = `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get<string>(
+      'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
     )}`;
+    return {
+      cookie,
+      token,
+    };
   }
 
   getCookieWithJwtRefreshToken(user: User) {
@@ -69,12 +73,5 @@ export class AuthService {
       cookie,
       token,
     };
-  }
-
-  getCookiesForLogOut() {
-    return [
-      'Authentication=; HttpOnly; Path=/; Max-Age=0',
-      'Refresh=; HttpOnly; Path=/; Max-Age=0',
-    ];
   }
 }

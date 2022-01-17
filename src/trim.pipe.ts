@@ -11,6 +11,10 @@ export class TrimPipe implements PipeTransform {
     return typeof obj === 'object' && obj !== null;
   }
 
+  private isString(value: any): boolean {
+    return typeof value === 'string';
+  }
+
   private trim(values) {
     Object.keys(values).forEach((key) => {
       if (key !== 'password') {
@@ -30,7 +34,7 @@ export class TrimPipe implements PipeTransform {
     const { type } = metadata;
     if (this.isObj(values) && type === 'body') {
       return this.trim(values);
-    } else if (type === 'custom') {
+    } else if (type === 'custom' || this.isString(values)) {
       return values;
     }
 

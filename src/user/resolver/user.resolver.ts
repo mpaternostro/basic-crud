@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import {
   ClassSerializerInterceptor,
   UseGuards,
@@ -10,15 +11,19 @@ import {
   Args,
   ResolveField,
   Parent,
+  Context,
 } from '@nestjs/graphql';
+import { getCookiesForLogOut } from 'utils/getCookiesForLogOut';
+import { GqlAuthGuard } from 'auth/guard/gql-auth.guard';
+import { CurrentUser } from 'auth/current-user.decorator';
+import { Todo } from 'todo/entities/todo.entity';
 import { TodoService } from 'todo/service/todo.service';
 import { User } from '../entities/user.entity';
 import { UserService } from '../service/user.service';
-import { GqlAuthGuard } from '../../auth/guard/gql-auth.guard';
-import { CurrentUser } from '../../auth/current-user.decorator';
 import { CreateUserInput } from '../dto/create-user.input';
 import { UpdateUserInput } from '../dto/update-user.input';
-import { Todo } from 'todo/entities/todo.entity';
+import { RemoveUserInput } from '../dto/remove-user.input';
+import { VerifyPasswordGuard } from 'auth/guard/verify-password.guard';
 
 @Resolver('User')
 @UseGuards(GqlAuthGuard)
@@ -36,7 +41,7 @@ export class UserResolver {
 
   @Query('user')
   async findOne(@Args('id') id: string): Promise<User> {
-    return this.userService.findOneById(id);
+    return this.userService.findOne({ id });
   }
 
   @Query('users')
@@ -45,7 +50,7 @@ export class UserResolver {
   }
 
   @ResolveField('todos')
-  async findTodos(@Parent() user): Promise<Todo[]> {
+  async findTodos(@Parent() user: User): Promise<Todo[]> {
     const { id } = user;
     return this.todoService.findAllByUserId(id);
   }
@@ -57,15 +62,23 @@ export class UserResolver {
     return this.userService.create(createUserInput);
   }
 
+  @UseGuards(VerifyPasswordGuard)
   @Mutation('updateUser')
-  update(
+  async update(
     @Args('updateUserInput') updateUserInput: UpdateUserInput,
+    @Context('req') req: Request,
   ): Promise<User> {
-    return this.userService.update(updateUserInput);
+    const updatedUser = await this.userService.update(updateUserInput);
+    if (updateUserInput.username) {
+      // if username changed, user must be logged out
+      req.res?.setHeader('Set-Cookie', getCookiesForLogOut());
+    }
+    return updatedUser;
   }
 
+  @UseGuards(VerifyPasswordGuard)
   @Mutation('removeUser')
-  remove(@Args('id') id: string) {
-    return this.userService.remove(id);
+  remove(@Args('removeUserInput') removeUserInput: RemoveUserInput) {
+    return this.userService.remove(removeUserInput.id);
   }
 }

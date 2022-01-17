@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
+import { getCookiesForLogOut } from 'utils/getCookiesForLogOut';
 import { CreateUserInput } from 'user/dto/create-user.input';
 import { User } from 'user/entities/user.entity';
 import { UserService } from 'user/service/user.service';
@@ -36,9 +37,9 @@ export class AuthController {
   @Post('login')
   async login(@Req() req: RequestWithUser): Promise<User> {
     const { user, res } = req;
-    const accessTokenCookie =
+    const { cookie: accessTokenCookie } =
       this.authService.getCookieWithJwtAccessToken(user);
-    const { token: refreshToken, cookie: refreshTokenCookie } =
+    const { cookie: refreshTokenCookie, token: refreshToken } =
       this.authService.getCookieWithJwtRefreshToken(user);
     await this.userService.setCurrentRefreshToken(refreshToken, user.id);
     if (!res) {
@@ -50,28 +51,29 @@ export class AuthController {
 
   @UseGuards(JwtRefreshTokenGuard)
   @Get('refresh')
-  refresh(@Req() request: RequestWithUser): User {
-    const { res } = request;
-    const accessTokenCookie = this.authService.getCookieWithJwtAccessToken(
-      request.user,
-    );
+  async refresh(@Req() req: RequestWithUser): Promise<User> {
+    const { user, res } = req;
+    const { cookie: accessTokenCookie } =
+      this.authService.getCookieWithJwtAccessToken(user);
+    const { cookie: refreshTokenCookie, token: refreshToken } =
+      this.authService.getCookieWithJwtRefreshToken(user);
+    await this.userService.setCurrentRefreshToken(refreshToken, user.id);
     if (!res) {
       throw new Error('Cannot access Response.');
     }
-
-    res.setHeader('Set-Cookie', accessTokenCookie);
-    return request.user;
+    res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
+    return user;
   }
 
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logOut(@Req() req: RequestWithUser) {
-    const { res } = req;
+    const { user, res } = req;
     if (!res) {
       throw new Error('Cannot access Response.');
     }
-    await this.userService.removeRefreshToken(req.user.id);
-    res.setHeader('Set-Cookie', this.authService.getCookiesForLogOut());
+    await this.userService.removeRefreshToken(user.id);
+    res.setHeader('Set-Cookie', getCookiesForLogOut());
   }
 }

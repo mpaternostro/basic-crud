@@ -20,7 +20,9 @@ import { JwtRefreshTokenStrategy } from './strategy/jwt-refresh-token.strategy';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
         signOptions: {
-          expiresIn: `${configService.get<string>('JWT_EXPIRATION_TIME')}`,
+          expiresIn: `${configService.get<string>(
+            'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
+          )}`,
         },
       }),
     }),

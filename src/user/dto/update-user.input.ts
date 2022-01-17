@@ -5,6 +5,10 @@ export class UpdateUserInput {
   @IsString()
   id: string;
 
+  @IsString()
+  @MinLength(8)
+  currentPassword: string;
+
   @IsOptional()
   @IsString()
   @MinLength(5)
@@ -14,4 +18,7 @@ export class UpdateUserInput {
   @IsString()
   @MinLength(8)
   password?: string;
+
+  @IsOptional()
+  currentHashedRefreshToken?: null;
 }
