@@ -24,28 +24,34 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+GraphQL Todo API built on [NestJS](https://github.com/nestjs/nest).
+
+- Authentication
+- Everything tested with Unit and E2E tests with Jest and Supertest
+- Fully typed with TypeScript
+- PostgreSQL + TypeORM
+- ESLint + Prettier for static code analysis and code formatting
+- API Hosted on Heroku
 
 ## Installation
 
+- Create `.env` and `docker.env` files in project's root, following `.env.dist` and `docker.env.dist` hints (I consider `JWT_ACCESS_TOKEN_EXPIRATION_TIME=1d` and `JWT_REFRESH_TOKEN_EXPIRATION_TIME=1w` nice defaults)
+- To edit code, it's recommended to install ESLint, Prettier and Jest IDE extensions
+- Install [Docker](https://www.docker.com/products/docker-desktop). Server, DB and DB admin easily runs on a Docker container for ease of use and isolation
+
+## Running app in development
+
 ```bash
-$ npm install
+# server defaults to localhost:3000
+$ docker-compose up
 ```
 
-## Running the app
+## Deploying
 
-```bash
-# development
-$ npm run start
+Configure in Heroku, add Heroku Postgres add-on and add config vars in Settings.
+* If any changes to entities were made, you should run migrations with `npm run typeorm:generate-migrations` and `npm run typeorm:run-migrations`.
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
+## Running tests
 
 ```bash
 # unit tests
@@ -56,6 +62,9 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+
+# e2e test coverage
+$ npm run test:e2e:cov
 ```
 
 ## Support
