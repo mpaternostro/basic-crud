@@ -46,8 +46,8 @@ import { DateScalar } from './date-scalar';
         type: 'postgres',
         url: configService.get<string>('DATABASE_URL'),
         entities: ['dist/**/*.entity{.ts,.js}'],
-        autoLoadEntities: true,
-        // synchronize: true,
+        synchronize:
+          configService.get<string>('NODE_ENV') === 'production' ? false : true,
         ssl:
           configService.get<string>('NODE_ENV') === 'production'
             ? {
