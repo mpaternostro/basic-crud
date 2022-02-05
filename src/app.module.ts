@@ -29,6 +29,7 @@ import { DateScalar } from './date-scalar';
       inject: [ConfigService],
       useFactory: () => ({
         typePaths: ['./**/*.graphql'],
+        introspection: true,
         definitions: {
           path: join(process.cwd(), 'src/graphql.ts'),
           outputAs: 'class',
