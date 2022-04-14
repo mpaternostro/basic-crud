@@ -28,13 +28,13 @@ input RemoveUserInput {
 }
 
 type Query {
-  whoAmI: User
-  users: [User]!
-  user(id: ID!): User
+  whoAmI: User!
+  users: [User!]!
+  user(id: ID!): User!
 }
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
   updateUser(updateUserInput: UpdateUserInput!): User!
-  removeUser(removeUserInput: RemoveUserInput!): User
+  removeUser(removeUserInput: RemoveUserInput!): User!
 }
