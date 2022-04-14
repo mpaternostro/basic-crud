@@ -44,15 +44,15 @@ export class Todo {
 }
 
 export abstract class IQuery {
-    abstract todos(): Nullable<Todo>[] | Promise<Nullable<Todo>[]>;
+    abstract todos(): Todo[] | Promise<Todo[]>;
 
-    abstract todo(id: string): Nullable<Todo> | Promise<Nullable<Todo>>;
+    abstract todo(id: string): Todo | Promise<Todo>;
 
-    abstract whoAmI(): Nullable<User> | Promise<Nullable<User>>;
+    abstract whoAmI(): User | Promise<User>;
 
-    abstract users(): Nullable<User>[] | Promise<Nullable<User>[]>;
+    abstract users(): User[] | Promise<User[]>;
 
-    abstract user(id: string): Nullable<User> | Promise<Nullable<User>>;
+    abstract user(id: string): User | Promise<User>;
 }
 
 export abstract class IMutation {
@@ -60,13 +60,13 @@ export abstract class IMutation {
 
     abstract updateTodo(updateTodoInput: UpdateTodoInput): Todo | Promise<Todo>;
 
-    abstract removeTodo(id: string): Nullable<Todo> | Promise<Nullable<Todo>>;
+    abstract removeTodo(id: string): Todo | Promise<Todo>;
 
     abstract createUser(createUserInput: CreateUserInput): User | Promise<User>;
 
     abstract updateUser(updateUserInput: UpdateUserInput): User | Promise<User>;
 
-    abstract removeUser(removeUserInput: RemoveUserInput): Nullable<User> | Promise<Nullable<User>>;
+    abstract removeUser(removeUserInput: RemoveUserInput): User | Promise<User>;
 }
 
 export class User {
